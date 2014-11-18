@@ -141,13 +141,28 @@ class NeuralNetwork(Learner):
         
         self.n_updates = 0 # To keep track of the number of updates, to decrease the learning rate
 
-        ##INIT THEANO FUNCTIONS : Loss function
+        ##INIT THEANO FUNCTIONS :
+        ##Common Theano Variables
+        weightsTensor = T.tensor.dmatrix("w")
+        gradWeightsTensor = T.tensor.dmatrix("grad_w")
+        biasesTensor = T.tensor.dmatrix("b")
+        gradBiasTensor = T.tensor.dmatrix("grad_b")
+        ## Loss function
         L1Tensor = T.tensor.dscalar("L1")
         L2Tensor = T.tensor.dscalar("L2")
-        weightsTensor = T.tensor.dmatrix("w")
+
         self.LFunctionT = T.function([L1Tensor,L2Tensor, weightsTensor],
                                      (T.tensor.sum((T.tensor.sqr(weightsTensor)))*L2Tensor) + #L2 portion
                                      (T.tensor.sum(T.tensor.abs_(weightsTensor))*L1Tensor)) #L1 portion
+        ##Update-related theano functions
+        lrTensor = T.tensor.dscalar("deltalr")
+
+        #weightsTensor = T.tensor.dvector("w")
+        #gradWeightsTensor = T.tensor.dvector("grad_w")
+        #biasesTensor = T.tensor.dvector("b")
+        #gradBiasTensor = T.tensor.dvector("grad_b")
+        self.updateWeights = T.function([lrTensor, weightsTensor, gradWeightsTensor], weightsTensor - (lrTensor * gradWeightsTensor))
+        self.updateBiases = T.function([lrTensor, biasesTensor, gradBiasTensor], biasesTensor - (lrTensor * gradBiasTensor))
 
     def forget(self):
         """
@@ -155,7 +170,8 @@ class NeuralNetwork(Learner):
         """
         self.initialize(self.input_size,self.targets)
         self.epoch = 0
-        
+
+    #TODO THEANO-IZE
     def train(self,trainset):
         """
         Trains the neural network until it reaches a total number of
@@ -180,7 +196,8 @@ class NeuralNetwork(Learner):
                 self.bprop(input,target)
                 self.update()
         self.epoch = self.n_epochs
-        
+
+    #TODO THEANO-IZE
     def fprop(self,input,target):
         """
         Forward propagation: 
@@ -213,6 +230,7 @@ class NeuralNetwork(Learner):
 
         return self.training_loss(self.hs[-1],target)
 
+    #DONE Theano-ized
     def training_loss(self,output,target):
         """
         Computation of the loss:
@@ -227,6 +245,7 @@ class NeuralNetwork(Learner):
 
         return l
 
+    #TODO THEANO-IZE
     def bprop(self,input,target):
         """
         Backpropagation:
@@ -273,19 +292,25 @@ class NeuralNetwork(Learner):
             if self.L1 != 0:
                 self.grad_weights[h] += self.L1*np.sign(self.weights[h])
 
+    #TODO THEANO-IZE
     def update(self):
         """
         Stochastic gradient update:
         - performs a gradient step update of the neural network parameters self.weights and self.biases,
           using the gradients in self.grad_weights and self.grad_biases
         """
-
+        test = self.weights
+        deltalr = self.lr /(1.+self.n_updates*self.dc)
         for h in range(len(self.weights)):
+            #self.weights[h] = self.updateWeights(deltalr, np.reshape(self.weights[h],), self.grad_weights[h])
+            #self.biases[h] = self.updateBiases(deltalr, self.biases[h], self.grad_biases[h])
             self.weights[h] -= self.lr /(1.+self.n_updates*self.dc) * self.grad_weights[h]
             self.biases[h] -= self.lr /(1.+self.n_updates*self.dc) * self.grad_biases[h]
 
+
         self.n_updates += 1
-            
+
+    #TODO THEANO-IZE
     def use(self,dataset):
         """
         Computes and returns the outputs of the Learner for

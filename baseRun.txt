@@ -1,0 +1,10 @@
+Epoch 1 | Training errors: classif=0.382, NLL=1.274 | Validation errors: classif=0.391, NLL=1.317
+Epoch 2 | Training errors: classif=0.274, NLL=0.965 | Validation errors: classif=0.294, NLL=1.019
+Epoch 3 | Training errors: classif=0.256, NLL=0.899 | Validation errors: classif=0.275, NLL=0.960
+Epoch 4 | Training errors: classif=0.241, NLL=0.848 | Validation errors: classif=0.261, NLL=0.930
+Epoch 5 | Training errors: classif=0.234, NLL=0.820 | Validation errors: classif=0.254, NLL=0.905
+Epoch 6 | Training errors: classif=0.233, NLL=0.818 | Validation errors: classif=0.260, NLL=0.916
+Epoch 7 | Training errors: classif=0.222, NLL=0.780 | Validation errors: classif=0.245, NLL=0.887
+Epoch 8 | Training errors: classif=0.214, NLL=0.762 | Validation errors: classif=0.241, NLL=0.875
+Epoch 9 | Training errors: classif=0.222, NLL=0.791 | Validation errors: classif=0.244, NLL=0.906
+Epoch 10 | Training errors: classif=0.224, NLL=0.789 | Validation errors: classif=0.246, NLL=0.907
