@@ -142,13 +142,12 @@ class NeuralNetwork(Learner):
         self.n_updates = 0 # To keep track of the number of updates, to decrease the learning rate
 
         ##INIT THEANO FUNCTIONS : Loss function
+        L1Tensor = T.tensor.dscalar("L1")
         L2Tensor = T.tensor.dscalar("L2")
         weightsTensor = T.tensor.dmatrix("w")
-        self.L2FunctionT = T.function([L2Tensor, weightsTensor], (T.tensor.sum((T.tensor.sqr(weightsTensor)))*L2Tensor))
-
-        L1Tensor = T.tensor.dscalar("L1")
-        self.L1FunctionT = T.function([L1Tensor,weightsTensor], (T.tensor.sum(T.tensor.abs_(weightsTensor))*L1Tensor))
-
+        self.LFunctionT = T.function([L1Tensor,L2Tensor, weightsTensor],
+                                     (T.tensor.sum((T.tensor.sqr(weightsTensor)))*L2Tensor) + #L2 portion
+                                     (T.tensor.sum(T.tensor.abs_(weightsTensor))*L1Tensor)) #L1 portion
 
     def forget(self):
         """
@@ -222,14 +221,10 @@ class NeuralNetwork(Learner):
         """
 
         l = -np.log(output[target])
-
         if self.L2 != 0 or self.L1 != 0:
             for h in range(len(self.weights)):
-                if self.L1 != 0:
-                    l += self.L1FunctionT(self.L1,self.weights[h])
-                if self.L2 != 0:
-                    l += self.L2FunctionT(self.L2,self.weights[h])
-            
+                l += self.LFunctionT(self.L1, self.L2, self.weights[h])
+
         return l
 
     def bprop(self,input,target):
