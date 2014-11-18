@@ -1,6 +1,7 @@
 
 from mlpython.learners.generic import Learner
 import numpy as np
+import theano as T
 
 class NeuralNetwork(Learner):
     """
@@ -140,6 +141,15 @@ class NeuralNetwork(Learner):
         
         self.n_updates = 0 # To keep track of the number of updates, to decrease the learning rate
 
+        ##INIT THEANO FUNCTIONS : Loss function
+        L2Tensor = T.tensor.dscalar("L2")
+        weightsTensor = T.tensor.dmatrix("w")
+        self.L2FunctionT = T.function([L2Tensor, weightsTensor], (T.tensor.sum((T.tensor.sqr(weightsTensor)))*L2Tensor))
+
+        L1Tensor = T.tensor.dscalar("L1")
+        self.L1FunctionT = T.function([L1Tensor,weightsTensor], (T.tensor.sum(T.tensor.abs_(weightsTensor))*L1Tensor))
+
+
     def forget(self):
         """
         Resets the neural network to its original state (DONE)
@@ -212,13 +222,13 @@ class NeuralNetwork(Learner):
         """
 
         l = -np.log(output[target])
-        if self.L2 != 0:
-            for h in range(len(self.weights)):
-                l += self.L2*(self.weights[h]**2).sum()
 
-        if self.L1 != 0:
+        if self.L2 != 0 or self.L1 != 0:
             for h in range(len(self.weights)):
-                l += self.L1*(np.abs(self.weights[h])).sum()
+                if self.L1 != 0:
+                    l += self.L1FunctionT(self.L1,self.weights[h])
+                if self.L2 != 0:
+                    l += self.L2FunctionT(self.L2,self.weights[h])
             
         return l
 
