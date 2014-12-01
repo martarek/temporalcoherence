@@ -7,6 +7,7 @@ from string import Template
 import mlpython.datasets.store as dataset_store
 import mlpython.mlproblems.generic as mlpb
 from nnet import NeuralNetwork
+import dataset
 
 sys.argv.pop(0);  # Remove first argument
 
@@ -32,7 +33,8 @@ except Exception as inst:
     print inst
 
 print "Loading dataset..."
-trainset, validset, testset = dataset_store.get_classification_problem('ocr_letters')
+#trainset, validset, testset = dataset_store.get_classification_problem('ocr_letters')
+trainset, validset, testset = dataset.get_classification_problem('../images/')
 
 print "Training..."
 # Early stopping code

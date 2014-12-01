@@ -13,7 +13,7 @@ def load_data(folder):
     """Load all the images files into memory. It puts them in a list of tuple containing the
     filename and the images. The images are in the same format as the file (rgb)."""
     folder.rstrip("/ ")
-    filenames = glob.glob(path + "/*.png")
+    filenames = glob.glob(folder + "/*.png")
     return ((imread(filename, flatten=True), filename) for filename in filenames)
 
 
@@ -51,12 +51,21 @@ def divide_problem(data, seed=1234):
 def create_problem(data, seed=1234):
     train, valid, test, video_sequences = divide_problem(data)
     targets = set((i[1] for i in train))
-    trainset = VideoClassification(data=train, video=video_sequences, metadata={'targets':targets})
-    return trainset
+    meta = {'targets':targets, 'input_size':len(train[0][0])}
+    trainset = VideoClassification(data=train, video=video_sequences, metadata=meta)
+    validset = VideoClassification(data=valid, video=video_sequences, metadata=meta)
+    testset = VideoClassification(data=test, video=video_sequences, metadata=meta)
+    return trainset, validset, testset
 
+def get_classification_problem(img_folder):
+    data = load_data(img_folder)
+    data = create_labels(data)
+    return create_problem(data, seed=1234)
 
 class VideoClassification(ClassificationProblem):
-    def __init__(self, data=None, video=None, metadata={}, seed=1234, call_setup=True):
+    def __init__(self, data=None, video=None, metadata=None, seed=1234, call_setup=True):
+        if metadata is None:
+            metadata = {}
         ClassificationProblem.__init__(self, data=data, metadata=metadata, call_setup=call_setup)
         self.video = np.array(video)
 
@@ -74,7 +83,11 @@ class VideoClassification(ClassificationProblem):
 
 
 if __name__ == "__main__":
+    import time
     path = "../images/"
     data = load_data(path)
-    data = list(create_labels(data))
-    problem = create_problem(data, seed=1234)
+    #data = list(create_labels(data))
+    data = create_labels(data)
+    #t = time.time()
+    train, valid, test = create_problem(data, seed=1234)
+    #print(time.time() - t)
