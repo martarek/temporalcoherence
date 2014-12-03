@@ -1,8 +1,8 @@
-
 from mlpython.learners.generic import Learner
 import numpy as np
 import theano as T
 from theano.tensor.nnet import conv
+from theano.tensor.signal import downsample
 
 class NeuralNetwork(Learner):
     """
@@ -191,6 +191,18 @@ class NeuralNetwork(Learner):
                                filter_shape=filter_shape,
                                image_shape=image_shape
                                )
+
+        self.params.append(W)
+        return conv_out
+
+    def createPoolingLayer(self, input, poolsize, prev_filter_shape):
+        pool_out = downsample.max_pool_2d(input=input, ds=poolsize, ignore_border=True)
+
+        b_values = np.zeros((prev_filter_shape[0],), dtype=T.config.floatX)
+        b = T.shared(value=b_values, borrow=True)
+        self.params.append(b)
+
+        return T.tensor.tanh(pool_out + b.dimshuffle('x', 0, 'x', 'x'))
 
     def forget(self):
         """
