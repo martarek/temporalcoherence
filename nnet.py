@@ -2,23 +2,24 @@
 from mlpython.learners.generic import Learner
 import numpy as np
 import theano as T
+from theano.tensor.nnet import conv
 
 class NeuralNetwork(Learner):
     """
     Neural network for classification.
- 
+
     Option ``lr`` is the learning rate.
- 
+
     Option ``dc`` is the decrease constante for the learning rate.
- 
+
     Option ``sizes`` is the list of hidden layer sizes.
- 
+
     Option ``L2`` is the L2 regularization weight (weight decay).
- 
+
     Option ``L1`` is the L1 regularization weight (weight decay).
- 
+
     Option ``seed`` is the seed of the random number generator.
- 
+
     Option ``tanh`` is a boolean indicating whether to use the
     hyperbolic tangent activation function (True) instead of the
     sigmoid activation function (True).
@@ -27,16 +28,16 @@ class NeuralNetwork(Learner):
     giving the initializations for the biases (first list)
     and the weight matrices (second list). If ``None``,
     then a random initialization is used.
-    
+
     Option ``n_epochs`` number of training epochs.
- 
+
     **Required metadata:**
- 
+
     * ``'input_size'``: Size of the input.
     * ``'targets'``: Set of possible targets.
- 
+
     """
-    
+
     def __init__(self,
                  lr=0.001,
                  dc=0,
@@ -58,7 +59,8 @@ class NeuralNetwork(Learner):
         self.n_epochs=n_epochs
 
         # internal variable keeping track of the number of training iterations since initialization
-        self.epoch = 0 
+        self.epoch = 0
+        self.params = []
 
     def initialize(self,input_size,n_classes):
         """
@@ -75,12 +77,12 @@ class NeuralNetwork(Learner):
         #############################################################################
         self.hs = []
         self.grad_hs = []
-        for h in range(n_hidden_layers):         
+        for h in range(n_hidden_layers):
             self.hs += [np.zeros((self.sizes[h],))]       # hidden layer
             self.grad_hs += [np.zeros((self.sizes[h],))]  # ... and gradient
         self.hs += [np.zeros((self.n_classes,))]       # output layer
         self.grad_hs += [np.zeros((self.n_classes,))]  # ... and gradient
-        
+
         ##################################################################
         # Allocate space for the neural network parameters and gradients #
         ##################################################################
@@ -102,7 +104,7 @@ class NeuralNetwork(Learner):
 
         self.biases += [np.zeros((self.n_classes))]                   # output layer biases
         self.grad_biases += [np.zeros((self.n_classes))]              # ... and gradient
-            
+
         #########################
         # Initialize parameters #
         #########################
@@ -133,12 +135,12 @@ class NeuralNetwork(Learner):
 
         else:
             self.weights = [(2*self.rng.rand(self.input_size,self.sizes[0])-1)/self.input_size]       # input to 1st hidden layer weights
-            
+
             for h in range(1,n_hidden_layers):
                 self.weights += [(2*self.rng.rand(self.sizes[h-1],self.sizes[h])-1)/self.sizes[h-1]]        # h-1 to h hidden layer weights
-            
+
             self.weights += [(2*self.rng.rand(self.sizes[-1],self.n_classes)-1)/self.sizes[-1]]      # last hidden to output layer weights
-        
+
         self.n_updates = 0 # To keep track of the number of updates, to decrease the learning rate
 
         ##INIT THEANO FUNCTIONS :
@@ -164,6 +166,32 @@ class NeuralNetwork(Learner):
         self.updateWeights = T.function([lrTensor, weightsTensor, gradWeightsTensor], weightsTensor - (lrTensor * gradWeightsTensor))
         self.updateBiases = T.function([lrTensor, biasesTensor, gradBiasTensor], biasesTensor - (lrTensor * gradBiasTensor))
 
+
+    def createConvolutionLayer(self, input, filter_shape, image_shape):
+
+        # there are "num input feature maps * filter height * filter width"
+        # inputs to each hidden unit
+        fan_in = np.prod(filter_shape[1:])
+        # each unit in the lower layer receives a gradient from:
+        # "num output feature maps * filter height * filter width" /
+        #   pooling size
+        fan_out = (filter_shape[0] * np.prod(filter_shape[2:]))
+        # initialize weights with random weights
+        W_bound = np.sqrt(6. / (fan_in + fan_out))
+        W = T.shared(
+            np.asarray(
+                self.rng.uniform(low=-W_bound, high=W_bound, size=filter_shape),
+                dtype=T.config.floatX
+            ),
+            borrow=True
+        )
+
+        conv_out = conv.conv2d(input=input,
+                               filters=W,
+                               filter_shape=filter_shape,
+                               image_shape=image_shape
+                               )
+
     def forget(self):
         """
         Resets the neural network to its original state (DONE)
@@ -179,9 +207,9 @@ class NeuralNetwork(Learner):
         initialize. (DONE)
 
         Field ``self.epoch`` keeps track of the number of training
-        epochs since initialization, so training continues until 
+        epochs since initialization, so training continues until
         ``self.epoch == self.n_epochs``.
-        
+
         If ``self.epoch == 0``, first initialize the model.
         """
 
@@ -189,7 +217,7 @@ class NeuralNetwork(Learner):
             input_size = trainset.metadata['input_size']
             n_classes = len(trainset.metadata['targets'])
             self.initialize(input_size,n_classes)
-            
+
         for it in range(self.epoch,self.n_epochs):
             for input,target in trainset:
                 self.fprop(input,target)
@@ -200,9 +228,9 @@ class NeuralNetwork(Learner):
     #TODO THEANO-IZE
     def fprop(self,input,target):
         """
-        Forward propagation: 
+        Forward propagation:
         - fills the hidden layers and output layer in self.hs
-        - returns the training loss, i.e. the 
+        - returns the training loss, i.e. the
           regularized negative log-likelihood for this (input,target) pair
         Argument ``input`` is a Numpy 1D array and ``target`` is an
         integer between 0 and nb. of classe - 1.
@@ -216,8 +244,8 @@ class NeuralNetwork(Learner):
             def compute_h(input,weights,bias):
                 act = bias+np.dot(input,weights)
                 return 1./(1+np.exp(-act))
-                
-        self.hs[0][:] = compute_h(input,self.weights[0],self.biases[0])        
+
+        self.hs[0][:] = compute_h(input,self.weights[0],self.biases[0])
         for h in range(1,len(self.weights)-1):
             self.hs[h][:] = compute_h(self.hs[h-1],self.weights[h],self.biases[h])
 
@@ -225,7 +253,7 @@ class NeuralNetwork(Learner):
             act = act-act.max()
             expact = np.exp(act)
             return expact/expact.sum()
-            
+
         self.hs[-1][:] = softmax(self.biases[-1]+np.dot(self.hs[-2],self.weights[-1]))
 
         return self.training_loss(self.hs[-1],target)
@@ -259,13 +287,13 @@ class NeuralNetwork(Learner):
         if self.tanh:
             def compute_grad_h(input,weights,bias,h,grad_weights,grad_bias,grad_h):
                 grad_act = (1-h**2) * grad_h
-                grad_weights[:,:] = np.outer(input,grad_act) 
+                grad_weights[:,:] = np.outer(input,grad_act)
                 grad_bias[:] = grad_act
                 return np.dot(grad_act,weights.T)
         else:
             def compute_grad_h(input,weights,bias,h,grad_weights,grad_bias,grad_h):
                 grad_act = h*(1-h)*grad_h
-                grad_weights[:,:] = np.outer(input,grad_act) 
+                grad_weights[:,:] = np.outer(input,grad_act)
                 grad_bias[:] = grad_act
                 return np.dot(grad_act,weights.T)
 
@@ -275,7 +303,7 @@ class NeuralNetwork(Learner):
         self.grad_weights[-1][:,:] = np.outer(self.hs[-2],self.grad_hs[-1])
         self.grad_biases[-1][:] = self.grad_hs[-1]
         self.grad_hs[-2][:] = np.dot(self.grad_hs[-1],self.weights[-1].T)
-        
+
         # Hidden layer gradients
         for h in range(len(self.weights)-2,0,-1):
             self.grad_hs[h-1][:] = compute_grad_h(self.hs[h-1],self.weights[h],self.biases[h],
@@ -322,7 +350,7 @@ class NeuralNetwork(Learner):
           the predicted class (first element) and the
           output probabilities for each class (following elements)
         """
- 
+
         outputs = np.zeros((len(dataset),self.n_classes+1))
 
         t=0
@@ -331,44 +359,44 @@ class NeuralNetwork(Learner):
             outputs[t,0] = self.hs[-1].argmax()
             outputs[t,1:] = self.hs[-1]
             t+=1
-            
+
         return outputs
-        
+
     def test(self,dataset):
         """
-        Computes and returns the outputs of the Learner as well as the errors of 
+        Computes and returns the outputs of the Learner as well as the errors of
         those outputs for ``dataset``:
         - the errors should be a Numpy 2D array of size
           len(dataset) by 2
         - the ith row of the array contains the errors for the ith example
-        - the errors for each example should contain 
-          the 0/1 classification error (first element) and the 
+        - the errors for each example should contain
+          the 0/1 classification error (first element) and the
           regularized negative log-likelihood (second element)
          """
-          
+
         outputs = self.use(dataset)
         errors = np.zeros((len(dataset),2))
-        
+
         t=0
         for input,target in dataset:
             output = outputs[t,:]
             errors[t,0] = output[0] != target
             errors[t,1] = self.training_loss(output[1:],target)
             t+=1
-            
+
         return outputs, errors
- 
+
     def verify_gradients(self):
         """
         Verifies the implementation of the fprop and bprop methods
         using a comparison with a finite difference approximation of
         the gradients.
         """
-        
+
         print 'WARNING: calling verify_gradients reinitializes the learner'
-  
+
         rng = np.random.mtrand.RandomState(1234)
-  
+
         self.seed = 1234
         self.sizes = [4,5]
         self.initialize(20,3)
@@ -377,42 +405,42 @@ class NeuralNetwork(Learner):
         epsilon=1e-6
         self.lr = 0.1
         self.decrease_constant = 0
-  
+
         self.fprop(input,target)
         self.bprop(input,target) # compute gradients
 
         import copy
         emp_grad_weights = copy.deepcopy(self.weights)
-  
+
         for h in range(len(self.weights)):
             for i in range(self.weights[h].shape[0]):
                 for j in range(self.weights[h].shape[1]):
                     self.weights[h][i,j] += epsilon
                     a = self.fprop(input,target)
                     self.weights[h][i,j] -= epsilon
-                    
+
                     self.weights[h][i,j] -= epsilon
                     b = self.fprop(input,target)
                     self.weights[h][i,j] += epsilon
-                    
+
                     emp_grad_weights[h][i,j] = (a-b)/(2.*epsilon)
 
 
         print 'grad_weights[0] diff.:',np.sum(np.abs(self.grad_weights[0].ravel()-emp_grad_weights[0].ravel()))/self.weights[0].ravel().shape[0]
         print 'grad_weights[1] diff.:',np.sum(np.abs(self.grad_weights[1].ravel()-emp_grad_weights[1].ravel()))/self.weights[1].ravel().shape[0]
         print 'grad_weights[2] diff.:',np.sum(np.abs(self.grad_weights[2].ravel()-emp_grad_weights[2].ravel()))/self.weights[2].ravel().shape[0]
-  
-        emp_grad_biases = copy.deepcopy(self.biases)    
+
+        emp_grad_biases = copy.deepcopy(self.biases)
         for h in range(len(self.biases)):
             for i in range(self.biases[h].shape[0]):
                 self.biases[h][i] += epsilon
                 a = self.fprop(input,target)
                 self.biases[h][i] -= epsilon
-                
+
                 self.biases[h][i] -= epsilon
                 b = self.fprop(input,target)
                 self.biases[h][i] += epsilon
-                
+
                 emp_grad_biases[h][i] = (a-b)/(2.*epsilon)
 
         print 'grad_biases[0] diff.:',np.sum(np.abs(self.grad_biases[0].ravel()-emp_grad_biases[0].ravel()))/self.biases[0].ravel().shape[0]
