@@ -165,7 +165,9 @@ class NeuralNetwork(Learner):
         #gradBiasTensor = T.tensor.dvector("grad_b")
         self.updateWeights = T.function([lrTensor, weightsTensor, gradWeightsTensor], weightsTensor - (lrTensor * gradWeightsTensor))
         self.updateBiases = T.function([lrTensor, biasesTensor, gradBiasTensor], biasesTensor - (lrTensor * gradBiasTensor))
-
+        self.inputTensor = T.tensor.matrix("input")
+        self.layer = [self.createConvolutionLayer(self.inputTensor, (1,1,3,3), (1,1,128,128))]
+        
 
     def createConvolutionLayer(self, input, filter_shape, image_shape):
 
@@ -258,20 +260,14 @@ class NeuralNetwork(Learner):
 
         return self.training_loss(self.hs[-1],target)
 
-    #DONE Theano-ized
     def training_loss(self,output,target):
         """
-        Computation of the loss:
-        - returns the regularized negative log-likelihood loss associated with the
-          given output vector (probabilities of each class) and target (class ID)
+        Returns the negative log likelyhood (NLL) for a given minibatch
+        :param output: Theano tensor representing the output function of the preceding layer
+        :param target: Vector that gives for each example the correct label
+        :return: nll : Theano tensor representing the NLL
         """
-
-        l = -np.log(output[target])
-        if self.L2 != 0 or self.L1 != 0:
-            for h in range(len(self.weights)):
-                l += self.LFunctionT(self.L1, self.L2, self.weights[h])
-
-        return l
+        return -T.mean(T.log(output)[T.arange(target.shape[0]), target])
 
     #TODO THEANO-IZE
     def bprop(self,input,target):
