@@ -38,13 +38,16 @@ def divide_problem(data, seed=1234):
     for image, (sequence, angle) in data:
         if sequence in train_indexes:
             if angle in [0, 90, 180, 270]:
-                train.append((image.ravel(), sequence))
+                train.append((image, sequence))
             elif angle in [45, 135, 225, 315]:
-                valid.append((image.ravel(), sequence))
+                valid.append((image, sequence))
             else:
-                test.append((image.ravel(), sequence))
+                test.append((image, sequence))
         else:
-            video.append(image.ravel())
+            video.append(image)
+    np.random.shuffle(train)
+    np.random.shuffle(test)
+    np.random.shuffle(valid)
     return train, valid, test, video
 
 
