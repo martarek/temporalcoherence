@@ -159,15 +159,29 @@ class NeuralNetwork(Learner):
         ##Update-related theano functions
         lrTensor = T.tensor.dscalar("deltalr")
 
-        #weightsTensor = T.tensor.dvector("w")
-        #gradWeightsTensor = T.tensor.dvector("grad_w")
-        #biasesTensor = T.tensor.dvector("b")
-        #gradBiasTensor = T.tensor.dvector("grad_b")
         self.updateWeights = T.function([lrTensor, weightsTensor, gradWeightsTensor], weightsTensor - (lrTensor * gradWeightsTensor))
         self.updateBiases = T.function([lrTensor, biasesTensor, gradBiasTensor], biasesTensor - (lrTensor * gradBiasTensor))
-        self.inputTensor = T.tensor.matrix("input")
-        self.layer = [self.createConvolutionLayer(self.inputTensor, (1,1,3,3), (1,1,128,128))]
-        
+        self.inputTensor = T.tensor.matrix("input").reshape((1,1,72,72))
+        targets = T.tensor.ivector('target')
+        #self.layer = [self.createConvolutionLayer(self.inputTensor, (1,1,3,3), (1,1,128,128))]
+        C1 = self.createConvolutionLayer(self.inputTensor, (1,1,3,3), (1,1,72,72))
+        S2 = self.createPoolingLayer(C1, (2, 2), (1,1,3,3))
+        C3 = self.createConvolutionLayer(S2, (1, 1, 4, 4), (1, 1, 35, 35))
+        S4 = self.createPoolingLayer(C3, (2, 2), (1, 1, 4, 4))
+        C5 = self.createConvolutionLayer(S4, (1, 1, 5, 5), (1, 1, 16, 16))
+        S6 = self.createPoolingLayer(C5, (2, 2), (1, 1, 5, 5))
+        C7 = self.createConvolutionLayer(S6, (1, 1, 6, 6), (1, 1, 6, 6))
+
+
+        output_layer = self.createSigmoidLayer(C7.flatten(), 1, 1)
+        cost = self.training_loss(output_layer, targets)
+        grads = T.tensor.grad(cost, self.params)
+
+        updates = [(param_i, param_i - self.lr * grad_i) for param_i, grad_i in zip(self.params, grads)]
+
+        self.train_batch = T.function([self.inputTensor, targets], cost, updates=updates,
+                                      allow_input_downcast=True)
+
 
     def createConvolutionLayer(self, input, filter_shape, image_shape):
 
@@ -206,6 +220,25 @@ class NeuralNetwork(Learner):
 
         return T.tensor.tanh(pool_out + b.dimshuffle('x', 0, 'x', 'x'))
 
+    def createSigmoidLayer(self, input, nkerns, img_size):
+        print(nkerns, self.n_classes)
+        W = T.shared(
+            value=np.zeros(
+                (nkerns*img_size, self.n_classes),
+                dtype=T.config.floatX
+            ),
+            name='sigmoid W',
+            borrow=True
+        )
+        b = T.shared(
+            value = np.zeros((self.n_classes,), dtype=T.config.floatX),
+            name = 'sigmoid b',
+            borrow=True
+        )
+        self.params.append(W)
+        self.params.append(b)
+        return T.tensor.nnet.softmax(T.tensor.dot(input, W) + b)
+
     def forget(self):
         """
         Resets the neural network to its original state (DONE)
@@ -234,9 +267,10 @@ class NeuralNetwork(Learner):
 
         for it in range(self.epoch,self.n_epochs):
             for input,target in trainset:
-                self.fprop(input,target)
-                self.bprop(input,target)
-                self.update()
+                print(self.train_batch(input.reshape(1,1,72,72), np.array([target])))
+                #self.fprop(input,target)
+                #self.bprop(input,target)
+                #self.update()
         self.epoch = self.n_epochs
 
     #TODO THEANO-IZE
@@ -279,7 +313,7 @@ class NeuralNetwork(Learner):
         :param target: Vector that gives for each example the correct label
         :return: nll : Theano tensor representing the NLL
         """
-        return -T.mean(T.log(output)[T.arange(target.shape[0]), target])
+        return -T.tensor.mean(T.tensor.log(output)[T.tensor.arange(target.shape[0]), target])
 
     #TODO THEANO-IZE
     def bprop(self,input,target):
