@@ -163,17 +163,22 @@ class NeuralNetwork(Learner):
         self.updateBiases = T.function([lrTensor, biasesTensor, gradBiasTensor], biasesTensor - (lrTensor * gradBiasTensor))
         self.inputTensor = T.tensor.matrix("input").reshape((1,1,72,72))
         targets = T.tensor.ivector('target')
-        #self.layer = [self.createConvolutionLayer(self.inputTensor, (1,1,3,3), (1,1,128,128))]
-        C1 = self.createConvolutionLayer(self.inputTensor, (1,1,3,3), (1,1,72,72))
-        S2 = self.createPoolingLayer(C1, (2, 2), (1,1,3,3))
-        C3 = self.createConvolutionLayer(S2, (1, 1, 4, 4), (1, 1, 35, 35))
-        S4 = self.createPoolingLayer(C3, (2, 2), (1, 1, 4, 4))
-        C5 = self.createConvolutionLayer(S4, (1, 1, 5, 5), (1, 1, 16, 16))
-        S6 = self.createPoolingLayer(C5, (2, 2), (1, 1, 5, 5))
-        C7 = self.createConvolutionLayer(S6, (1, 1, 6, 6), (1, 1, 6, 6))
+
+        print(self.sizes)
+
+        filter_shapes = [(self.sizes[0], 1, 3, 3), (self.sizes[1], self.sizes[0], 4, 4),
+                         (self.sizes[2], self.sizes[1], 5, 5), (self.sizes[3], self.sizes[2], 6, 6)]
+
+        C1 = self.createConvolutionLayer(self.inputTensor, filter_shapes[0], (1,1,72,72))
+        S2 = self.createPoolingLayer(C1, (2, 2), filter_shapes[0])
+        C3 = self.createConvolutionLayer(S2, filter_shapes[1], (1, self.sizes[0], 35, 35))
+        S4 = self.createPoolingLayer(C3, (2, 2), filter_shapes[1])
+        C5 = self.createConvolutionLayer(S4, filter_shapes[2], (1, self.sizes[1], 16, 16))
+        S6 = self.createPoolingLayer(C5, (2, 2), filter_shapes[2])
+        C7 = self.createConvolutionLayer(S6, filter_shapes[3], (1, self.sizes[2], 6, 6))
 
 
-        output_layer = self.createSigmoidLayer(C7.flatten(), 1, 1)
+        output_layer = self.createSigmoidLayer(C7.flatten(), self.sizes[-1], 1)
         cost = self.training_loss(output_layer, targets)
         grads = T.tensor.grad(cost, self.params)
 
