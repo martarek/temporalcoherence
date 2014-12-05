@@ -164,7 +164,6 @@ class NeuralNetwork(Learner):
         self.inputTensor = T.tensor.matrix("input").reshape((1,1,72,72))
         targets = T.tensor.ivector('target')
 
-        print(self.sizes)
 
         filter_shapes = [(self.sizes[0], 1, 3, 3), (self.sizes[1], self.sizes[0], 4, 4),
                          (self.sizes[2], self.sizes[1], 5, 5), (self.sizes[3], self.sizes[2], 6, 6)]
@@ -180,13 +179,17 @@ class NeuralNetwork(Learner):
 
         output_layer = self.createSigmoidLayer(C7.flatten(), self.sizes[-1], 1)
         cost = self.training_loss(output_layer, targets)
+        nll = -T.tensor.mean(T.tensor.log(output_layer))
         grads = T.tensor.grad(cost, self.params)
 
         updates = [(param_i, param_i - self.lr * grad_i) for param_i, grad_i in zip(self.params, grads)]
 
         self.train_batch = T.function([self.inputTensor, targets], cost, updates=updates,
                                       allow_input_downcast=True)
+        self.cost_function = T.function([self.inputTensor], nll)
 
+        self.pred_y = T.function([self.inputTensor], T.tensor.argmax(output_layer, axis=1))
+        self.theano_fprop = T.function([self.inputTensor], output_layer)
 
     def createConvolutionLayer(self, input, filter_shape, image_shape):
 
@@ -226,7 +229,6 @@ class NeuralNetwork(Learner):
         return T.tensor.tanh(pool_out + b.dimshuffle('x', 0, 'x', 'x'))
 
     def createSigmoidLayer(self, input, nkerns, img_size):
-        print(nkerns, self.n_classes)
         W = T.shared(
             value=np.zeros(
                 (nkerns*img_size, self.n_classes),
@@ -272,7 +274,7 @@ class NeuralNetwork(Learner):
 
         for it in range(self.epoch,self.n_epochs):
             for input,target in trainset:
-                print(self.train_batch(input.reshape(1,1,72,72), np.array([target])))
+                self.train_batch(input.reshape(1,1,72,72), np.array([target]))
                 #self.fprop(input,target)
                 #self.bprop(input,target)
                 #self.update()
@@ -402,11 +404,10 @@ class NeuralNetwork(Learner):
 
         t=0
         for input,target in dataset:
-            self.fprop(input,target)
-            outputs[t,0] = self.hs[-1].argmax()
-            outputs[t,1:] = self.hs[-1]
-            t+=1
-
+            input = input.reshape(1,1,72,72)
+            outputs[t,0] = self.pred_y(input)
+            outputs[t,1:] = self.cost_function(input)#self.theano_fprop(input)
+            t += 1
         return outputs
 
     def test(self,dataset):
@@ -428,7 +429,7 @@ class NeuralNetwork(Learner):
         for input,target in dataset:
             output = outputs[t,:]
             errors[t,0] = output[0] != target
-            errors[t,1] = self.training_loss(output[1:],target)
+            errors[t,1] = output[int(target) + 1]#self.training_loss(output[1:],target)
             t+=1
 
         return outputs, errors
