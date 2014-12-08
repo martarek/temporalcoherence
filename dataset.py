@@ -37,8 +37,7 @@ def divide_problem(data, seed=1234):
     train_indexes = indexes[0:30]
     train, test, valid, video = [], [], [], []
     for image, (sequence, angle) in data:
-        #image = image - np.mean(image)
-        #image = image / np.std(image)
+        image = (image - image.mean())/image.std()
         if sequence in train_indexes:
             if angle in [0, 180, 90, 270]:#[0, 90, 180, 270]:
                 train.append((image, sequence))
@@ -54,7 +53,7 @@ def divide_problem(data, seed=1234):
     return train, valid, test, video
 
 
-def create_problem(data, seed=1234, minibatch_size=10):
+def create_problem(data, seed=1234, minibatch_size=6):
     train, valid, test, video_sequences = divide_problem(data)
     targets = set((i[1] for i in train))
     meta = {'targets':targets, 'input_size':len(train[0][0])}
@@ -98,5 +97,6 @@ if __name__ == "__main__":
     #data = list(create_labels(data))
     data = create_labels(data)
     #t = time.time()
+    data = preprocess_data(data)
     train, valid, test = create_problem(data, seed=1234)
     #print(time.time() - t)
