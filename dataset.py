@@ -7,6 +7,7 @@ from scipy.misc import imread
 from numpy import random
 import numpy as np
 from mlpython.mlproblems.classification import ClassificationProblem
+from mlpython.mlproblems.generic import MinibatchProblem
 
 
 def load_data(folder):
@@ -36,10 +37,12 @@ def divide_problem(data, seed=1234):
     train_indexes = indexes[0:30]
     train, test, valid, video = [], [], [], []
     for image, (sequence, angle) in data:
+        #image = image - np.mean(image)
+        #image = image / np.std(image)
         if sequence in train_indexes:
-            if angle in [0, 90, 180, 270]:
+            if angle in [0, 180, 90, 270]:#[0, 90, 180, 270]:
                 train.append((image, sequence))
-            elif angle in [45, 135, 225, 315]:
+            elif angle in [45, 135, 225, 315]:#, 225, 315]:
                 valid.append((image, sequence))
             else:
                 test.append((image, sequence))
@@ -51,13 +54,16 @@ def divide_problem(data, seed=1234):
     return train, valid, test, video
 
 
-def create_problem(data, seed=1234):
+def create_problem(data, seed=1234, minibatch_size=10):
     train, valid, test, video_sequences = divide_problem(data)
     targets = set((i[1] for i in train))
     meta = {'targets':targets, 'input_size':len(train[0][0])}
     trainset = VideoClassification(data=train, video=video_sequences, metadata=meta)
     validset = VideoClassification(data=valid, video=video_sequences, metadata=meta)
     testset = VideoClassification(data=test, video=video_sequences, metadata=meta)
+    trainset = MinibatchProblem(trainset, minibatch_size=minibatch_size, has_single_field=False)
+    validset = MinibatchProblem(validset, minibatch_size=minibatch_size, has_single_field=False)
+    testset = MinibatchProblem(testset, minibatch_size=minibatch_size, has_single_field=False)
     return trainset, validset, testset
 
 def get_classification_problem(img_folder):
