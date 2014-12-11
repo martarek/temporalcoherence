@@ -108,8 +108,9 @@ class NeuralNetwork(Learner):
         updates = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params, grads)]
         updates += [(n_updates, n_updates + 1.)]
 
-        self.train_batch = T.function([self.inputTensor, targets], cost, updates=updates,
+        self.train_batch = T.function([self.inputTensor, targets], None, updates=updates,
                                       allow_input_downcast=True)
+
         self.cost_function = T.function([self.inputTensor], nll, allow_input_downcast=True)
 
         self.pred_y = T.function([self.inputTensor], T.tensor.argmax(output_layer, axis=1),
