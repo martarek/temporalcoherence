@@ -44,17 +44,21 @@ Object recognition is a classification problem in which we try to identify an ob
 
 One of the information that can prove useful is temporal coherence. For example, in a video sequence, it is likely that two adjacent frames contains the same objects rather than radically different ones. This is true to many other domains were data is sequential in nature.
 
-The method chosen to solve this problem is to use temporal coherence as a regularizer to 
+The method chosen to solve this problem is to use temporal coherence as a regularizer to exploit this information in unlabeled temporal data\cite{?}.
 %Mention the method you have chosen and why it solves your problem or is a good choice for your application.
+
 \section{Description}
 %-Describe in detail your method / algorithm implementation. Here are some things that you could discuss :
 %    – Description of the data.
 %    – Description and notation for the inputs.
 %    – Description and notation for the targets.
+The dataset used in this project is the COIL100 dataset\cite{?}. This dataset presents the pictures of 100 objects which are placed on a turntable and rotated by increments of 5 degrees by picture. It contains 72 images by object, for a total of 7200 pictures. The input consists of rgb images in the gif format and the target consists of an integer from 1 to 100.
+
 %– Write a description of the general principles behind your approach. Here are some things that you could discuss :
 %    – Type of learning (supervised / unsupervised, discriminative / generative).
 %    – Intuition behind the training objective your algorithm optimizes.
 %    – Intuition behind the architecture of the neural network.
+The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal-neural-net trained as a classifier on the images. However, a regularizer is then applied to ensure that the convolutionnal-neural-net doesn't act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
 %– Provide a detailed description of your algorithm which implements these principles. Your description should allow a person to reimplement your method from your description. Here are some things that you could discuss :
 %    – Objective optimized during training.
 %    – Optimization technique used.
