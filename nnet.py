@@ -102,7 +102,11 @@ class NeuralNetwork(Learner):
         nll = -T.tensor.log(output_layer)#-T.tensor.mean(T.tensor.log(output_layer))
         grads = T.tensor.grad(cost, self.params)
 
-        updates = [(param_i, param_i - self.lr * grad_i) for param_i, grad_i in zip(self.params, grads)]
+        n_updates = T.shared(0.)
+
+        #updates = [(param_i, param_i - self.lr * grad_i) for param_i, grad_i in zip(self.params, grads)]
+        updates = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params, grads)]
+        updates += [(n_updates, n_updates + 1.)]
 
         self.train_batch = T.function([self.inputTensor, targets], cost, updates=updates,
                                       allow_input_downcast=True)
@@ -111,6 +115,9 @@ class NeuralNetwork(Learner):
         self.pred_y = T.function([self.inputTensor], T.tensor.argmax(output_layer, axis=1),
                                  allow_input_downcast=True)
         self.theano_fprop = T.function([self.inputTensor], output_layer,allow_input_downcast=True)
+
+    def update_param(self, param_i, grad_i, n_updates):
+        return param_i, param_i - grad_i * (self.lr / (1. + (n_updates * self.dc)))
 
     def createConvolutionLayer(self, input, filter_shape, image_shape):
 
