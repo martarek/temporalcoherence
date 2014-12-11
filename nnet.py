@@ -144,8 +144,14 @@ class NeuralNetwork(Learner):
                                filter_shape=filter_shape,
                                image_shape=image_shape
                                )
+        print(filter_shape)
+
+        b_values = np.zeros((filter_shape[0],), dtype=T.config.floatX)
+        b = T.shared(b_values)
+        conv_out = conv_out + b.dimshuffle('x', 0, 'x', 'x')
 
         self.params.append(W)
+        self.params.append(b)
         return conv_out
 
     def createPoolingLayer(self, input, poolsize, prev_filter_shape):
