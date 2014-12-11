@@ -58,7 +58,8 @@ The dataset used in this project is the COIL100 dataset\cite{?}. This dataset pr
 %    – Type of learning (supervised / unsupervised, discriminative / generative).
 %    – Intuition behind the training objective your algorithm optimizes.
 %    – Intuition behind the architecture of the neural network.
-The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal-neural-net trained as a classifier on the images. However, a regularizer is then applied to ensure that the convolutionnal-neural-net doesn't act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
+The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal-neural-net trained as a classifier on the images.\cite{?} A regularizer is then applied to ensure that the convolutionnal-neural-net doesn't act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
+
 %– Provide a detailed description of your algorithm which implements these principles. Your description should allow a person to reimplement your method from your description. Here are some things that you could discuss :
 %    – Objective optimized during training.
 %    – Optimization technique used.
@@ -68,6 +69,18 @@ The algorithm implemented in this project is a semi-supervised algorithm. The ba
 %    – Description of the use of the network to make a prediction on new data.
 %    - Description of hyper-parameters.
 %    – Pseudocodes of your algorithm.
+\subsection{Details}
+The convolutionnal-neural-net\cite{?} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. 
+\begin{figure}[h]
+\label{fig:convolutionnal-neural-net}
+\includegraphics[width=\textwidth]{CNN.png}
+\caption{A convolutionnal neural network}
+\end{figure}
+
+\subsubsection{Convolution}
+
+
+
 \section{Results}
 %– Describe your experimental protocol (proportions used to divide the data into training, validation and test sets, data preprocessing, etc.).
 %– Describe your procedure for selecting hyper-parameters.
