@@ -53,7 +53,7 @@ def divide_problem(data, seed=1234):
     return train, valid, test, video
 
 
-def create_problem(data, seed=1234, minibatch_size=6):
+def create_problem(data, seed, minibatch_size):
     train, valid, test, video_sequences = divide_problem(data)
     targets = set((i[1] for i in train))
     meta = {'targets':targets, 'input_size':len(train[0][0])}
@@ -65,10 +65,10 @@ def create_problem(data, seed=1234, minibatch_size=6):
     testset = MinibatchProblem(testset, minibatch_size=minibatch_size, has_single_field=False)
     return trainset, validset, testset
 
-def get_classification_problem(img_folder):
+def get_classification_problem(img_folder, minibatch_size):
     data = load_data(img_folder)
     data = create_labels(data)
-    return create_problem(data, seed=1234)
+    return create_problem(data, seed=1234, minibatch_size=minibatch_size)
 
 class VideoClassification(ClassificationProblem):
     def __init__(self, data=None, video=None, metadata=None, seed=1234, call_setup=True):
