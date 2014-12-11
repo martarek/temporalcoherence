@@ -191,7 +191,9 @@ class NeuralNetwork(Learner):
         if self.epoch == 0:
             input_size = trainset.metadata['input_size']
             n_classes = len(trainset.metadata['targets'])
+            print "initialize ..."
             self.initialize(input_size, n_classes, batchsize)
+            print "done"
 
         for it in range(self.epoch,self.n_epochs):
             for input, target in trainset:
