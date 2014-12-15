@@ -78,7 +78,7 @@ class VideoClassification(ClassificationProblem):
         self.video = np.array(video)
 
     def getConsecutivesFrames(self, n=1):
-        indices = random.randint(0, self.video.shape[0], (n, ))
+        indices = random.randint(0, self.video.shape[0]-1, (n, ))
         indices_next = indices + 1
         return self.video[indices, :], self.video[indices_next, :]
 
