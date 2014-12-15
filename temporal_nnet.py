@@ -123,16 +123,16 @@ class TemporalNeuralNetwork(Learner):
         nll = -T.tensor.log(output_layer[0])#-T.tensor.mean(T.tensor.log(output_layer))
         grads_FirstPhase = T.tensor.grad(cost_FirstPhase, self.params)
 
-        #We stop before the last layer, being the output layer, hence the self.params[:-1]
-        grads_SecondPhase =  T.tensor.grad(cost_SecondPhase, self.params[:-1])
+        #We stop before the last layer, being the output layer, hence the self.params[:-2] (W and B)
+        grads_SecondPhase =  T.tensor.grad(cost_SecondPhase, self.params[:-2])
 
-        grads_ThirdPhase = T.tensor.grad(cost_ThirdPhase, self.params[:-1])
+        grads_ThirdPhase = T.tensor.grad(cost_ThirdPhase, self.params[:-2])
 
         #n_updates = T.shared(0.)
 
         updates_FirstPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
-        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params[:-1], grads_SecondPhase)] #FIXME Input correct lost function
-        updates_ThirdPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params[:-1], grads_ThirdPhase)] #FIXME Input correct lost function
+        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params[:-2], grads_SecondPhase)] #FIXME Input correct lost function
+        updates_ThirdPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params[:-2], grads_ThirdPhase)] #FIXME Input correct lost function
 
 
         self.train_batch[self.FIRST_PHASE] = T.function([self.inputTensor1, targets], None, updates=updates_FirstPhase,
@@ -145,9 +145,9 @@ class TemporalNeuralNetwork(Learner):
 
         self.cost_function = T.function([self.inputTensor1], nll, allow_input_downcast=True)
 
-        self.pred_y = T.function([self.inputTensor1], T.tensor.argmax(output_layer, axis=1),
+        self.pred_y = T.function([self.inputTensor1], T.tensor.argmax(output_layer[0], axis=1),
                                  allow_input_downcast=True)
-        self.theano_fprop = T.function([self.inputTensor1], output_layer,allow_input_downcast=True)
+        self.theano_fprop = T.function([self.inputTensor1], output_layer[0],allow_input_downcast=True)
 
     def similarLossFunction(self, layersOfInterest):
         return (layersOfInterest[0] - layersOfInterest[1]).norm(1)
@@ -264,8 +264,8 @@ class TemporalNeuralNetwork(Learner):
 
         for it in range(self.epoch,self.n_epochs):
             for input, target in trainset:
-                consecutivesFrames = trainset.getConsecutivesFrames()
-                nonConsecutivesFrames = trainset.getNonConsecutivesFrames()
+                consecutivesFrames = trainset.data.getConsecutivesFrames(batchsize)
+                nonConsecutivesFrames = trainset.data.getNonConsecutivesFrames(batchsize)
                 self.train_batch[self.FIRST_PHASE](input.reshape(batchsize,1,72,72), target)
                 self.train_batch[self.SECOND_PHASE](consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
                 self.train_batch[self.THIRD_PHASE](nonConsecutivesFrames[0].reshape(batchsize,1,72,72), nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
