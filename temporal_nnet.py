@@ -42,19 +42,13 @@ class TemporalNeuralNetwork(Learner):
                  lr=0.001,
                  dc=0,
                  sizes=[200,100,50],
-                 L2=0,
-                 L1=0,
                  seed=1234,
-                 tanh=False,
                  parameter_initialization=None,
                  n_epochs=10):
         self.lr=lr
         self.dc=dc
         self.sizes=sizes
-        self.L2=L2
-        self.L1=L1
         self.seed=seed
-        self.tanh=tanh
         self.parameter_initialization = parameter_initialization
         self.n_epochs=n_epochs
 
@@ -112,22 +106,26 @@ class TemporalNeuralNetwork(Learner):
         cost_FirstPhase = self.training_loss(output_layer[0], targets)
 
         #Fixme Use Training loss from article. Must Include a third phase
-        cost_SecondPhase = [self.training_loss(output_layer[0], targets),
-                            self.training_loss(output_layer[1], targets)]
+        cost_SecondPhase = self.similarLossFunction([output_layer[0], output_layer[1]])
+
+        cost_ThirdPhase = self.dissimilarLossFunction([output_layer[0], output_layer[1]])
+
+
 
         nll = -T.tensor.log(output_layer[0])#-T.tensor.mean(T.tensor.log(output_layer))
         grads_FirstPhase = T.tensor.grad(cost_FirstPhase, self.params)
 
-        grads_SecondPhase =  [T.tensor.grad(cost_SecondPhase[0], self.params),
-                              T.tensor.grad(cost_SecondPhase[1], self.params)]
+        grads_SecondPhase =  T.tensor.grad(cost_SecondPhase, self.params)
+
+        grads_ThirdPhase = T.tensor.grad(cost_ThirdPhase, self.params)
+
+        #n_updates = T.shared(0.)
 
 
-        n_updates = T.shared(0.)
-
-        #updates = [(param_i, param_i - self.lr * grad_i) for param_i, grad_i in zip(self.params, grads)]
-        updates_FirstPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads)]
-        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads)] #FIXME Input correct lost function
-        updates += [(n_updates, n_updates + 1.)] #TODO make proper update function
+        updates_FirstPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
+        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_SecondPhase)] #FIXME Input correct lost function
+        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_ThirdPhase)] #FIXME Input correct lost function
+        #updates += [(n_updates, n_updates + 1.)] #TODO make proper update function
 
         self.train_batch = T.function([self.inputTensor, targets], None, updates=updates, #TODO 2 inputTensors
                                       allow_input_downcast=True)
@@ -138,8 +136,14 @@ class TemporalNeuralNetwork(Learner):
                                  allow_input_downcast=True)
         self.theano_fprop = T.function([self.inputTensor], output_layer,allow_input_downcast=True)
 
+    def similarLossFunction(self, layersOfInterest):
+        return (layersOfInterest[0] - layersOfInterest[1]).norm(1)
+
+    def dissimilarLossFunction(self, layersOfInterest):
+        return T.tensor.max((0, self.deltaDistance - (layersOfInterest[0] - layersOfInterest[1]).norm(1)))
+
     def update_param(self, param_i, grad_i):#, n_updates):
-        return param_i, param_i - grad_i #* (self.lr / (1. + (n_updates * self.dc))) #FIXME Do not account for decreasing constant
+        return param_i, param_i - grad_i * self.lr#(self.lr / (1. + (n_updates * self.dc))) #FIXME Do not account for decreasing constant
 
     def createConvolutionLayer(self, input, filter_shape, image_shape):
 
