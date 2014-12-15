@@ -113,7 +113,6 @@ class TemporalNeuralNetwork(Learner):
 
         cost_FirstPhase = self.training_loss(output_layer[0], targets)
 
-        #Fixme Use Training loss from article. Must Include a third phase
         cost_SecondPhase = self.similarLossFunction([C7_1,C7_2])
 
         cost_ThirdPhase = self.dissimilarLossFunction([C7_1,C7_2])
