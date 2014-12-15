@@ -41,7 +41,7 @@ class TemporalNeuralNetwork(Learner):
     def __init__(self,
                  lr=0.001,
                  dc=0,
-                 sizes=[200,100,50],
+                 sizes=[50,100,150,200],
                  seed=1234,
                  parameter_initialization=None,
                  deltaDistance = 1,
@@ -120,7 +120,6 @@ class TemporalNeuralNetwork(Learner):
 
 
 
-        nll = -T.tensor.log(output_layer[0])#-T.tensor.mean(T.tensor.log(output_layer))
         grads_FirstPhase = T.tensor.grad(cost_FirstPhase, self.params)
 
         #We stop before the last layer, being the output layer, hence the self.params[:-2] (W and B)
@@ -131,23 +130,31 @@ class TemporalNeuralNetwork(Learner):
         n_updates = T.shared(0.)
 
         updates_FirstPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
-        updates_SecondPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params[:-2], grads_SecondPhase)]
-        updates_ThirdPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params[:-2], grads_ThirdPhase)]
+        updates_FirstPhase += [(n_updates, n_updates + 1.)]
 
+        updates_SecondPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params[:-2], grads_SecondPhase)]
+        updates_SecondPhase += [(n_updates, n_updates + 1.)]
+
+        updates_ThirdPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params[:-2], grads_ThirdPhase)]
+        updates_ThirdPhase += [(n_updates, n_updates + 1.)]
 
         self.train_batch[self.FIRST_PHASE] = T.function([self.inputTensor1, targets], None, updates=updates_FirstPhase,
-                                      allow_input_downcast=True)
+                                                        allow_input_downcast=True)
         self.train_batch[self.SECOND_PHASE] = T.function([self.inputTensor1, self.inputTensor2], None, updates=updates_SecondPhase,
-                                      allow_input_downcast=True)
+                                                         allow_input_downcast=True)
         self.train_batch[self.THIRD_PHASE] = T.function([self.inputTensor1, self.inputTensor2], None, updates=updates_ThirdPhase,
-                                      allow_input_downcast=True)
+                                                        allow_input_downcast=True)
 
 
-        self.cost_function = T.function([self.inputTensor1], nll, allow_input_downcast=True)
+        testLayer = output_layer[1]
+        inputTensorToSelect = self.inputTensor2
 
-        self.pred_y = T.function([self.inputTensor1], T.tensor.argmax(output_layer[0], axis=1),
+        nll = -T.tensor.log(testLayer)#-T.tensor.mean(T.tensor.log(output_layer))
+        self.cost_function = T.function([inputTensorToSelect], nll, allow_input_downcast=True)
+        self.pred_y = T.function([inputTensorToSelect], T.tensor.argmax(testLayer, axis=1),
                                  allow_input_downcast=True)
-        self.theano_fprop = T.function([self.inputTensor1], output_layer[0],allow_input_downcast=True)
+        self.theano_fprop = T.function([inputTensorToSelect], testLayer,allow_input_downcast=True)
+
 
     def similarLossFunction(self, layersOfInterest):
         return (layersOfInterest[0] - layersOfInterest[1]).norm(1)
@@ -181,7 +188,7 @@ class TemporalNeuralNetwork(Learner):
                                filters=W,
                                filter_shape=filter_shape,
                                image_shape=image_shape
-                               )
+        )
 
         #b_values = np.zeros((filter_shape[0],), dtype=T.config.floatX)
         #b = T.shared(b_values)
@@ -193,10 +200,10 @@ class TemporalNeuralNetwork(Learner):
 
     def createConvolutionLayerUsingParams(self, input, filter_shape, image_shape, W):
         return conv.conv2d(input=input,
-                               filters=W,
-                               filter_shape=filter_shape,
-                               image_shape=image_shape
-                               )
+                           filters=W,
+                           filter_shape=filter_shape,
+                           image_shape=image_shape
+        )
 
 
     def createPoolingLayer(self, input, poolsize, prev_filter_shape):
@@ -233,14 +240,6 @@ class TemporalNeuralNetwork(Learner):
     def createSigmoidLayerUsingParams(self, input, W, b):
         return T.tensor.nnet.softmax(T.tensor.dot(input, W) + b)
 
-    def forget(self):
-        """
-        Resets the neural network to its original state (DONE)
-        """
-        self.initialize(self.input_size,self.targets, 1)
-        self.epoch = 0
-
-    #TODO THEANO-IZE
     def train(self,trainset):
         """
         Trains the neural network until it reaches a total number of
@@ -282,7 +281,6 @@ class TemporalNeuralNetwork(Learner):
         return -T.tensor.mean(T.tensor.log(output)[T.tensor.arange(target.shape[0]), target])
 
 
-    #TODO THEANO-IZE
     def use(self,dataset):
         """
         Computes and returns the outputs of the Learner for
