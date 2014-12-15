@@ -96,10 +96,10 @@ The dataset used in this project is the COIL100 dataset\cite{?}. This dataset pr
 The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal-neural-net trained as a classifier on the images.\cite{?} A regularizer is then applied to ensure that the convolutionnal-neural-net doesn't act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
 
 %– Provide a detailed description of your algorithm which implements these principles. Your description should allow a person to reimplement your method from your description. Here are some things that you could discuss :
-%    – Objective optimized during training.
-%    – Optimization technique used.
-%    – Description of gradients.
-%    – Architecture of the neural network.
+%    – Objective optimized during training. X
+%    – Optimization technique used. X
+%    – Description of gradients. 1/2X
+%    – Architecture of the neural network. X
 %    – Training procedure (one phase of training or training in several phases).
 %    – Description of the use of the network to make a prediction on new data.
 %    - Description of hyper-parameters.
@@ -141,6 +141,22 @@ The gradient descent update is as follow:
 , y)}{\partial \theta}
 \end{equation}
 where $\lambda$ is a learning rate.
+
+The second and third lost functions are presented in \cite{?}.
+
+Considering two images $\mathbf{x_1}$ and $\mathbf{x_2}$ and their respective representation in the $l^{th}$ layer $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$, we enforce $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$ to be close when the two images are consecutive frames in a video.
+
+\begin{equation}
+L_{coh1}(\theta, \mathbf{x_1}, \mathbf{x_2}) = \norm{z_\theta^l(\mathbf{x_1}) - z_\theta^l(\mathbf{x_2})}_1
+\end{equation}
+
+Finally, the third cost function is the opposite of the last one. That is, considering two images $\mathbf{x_1}$ and $\mathbf{x_2}$ and their respective representation in the $l^{th}$ layer $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$, we enforce $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$ to be different when the two images are non-consecutive frames in a video.
+
+\begin{equation}
+L_{coh2}(\theta, \mathbf{x_1}, \mathbf{x_2}) = \max \left(0, \delta - \norm{z_\theta^l(\mathbf{x_1}) - z_\theta^l(\mathbf{x_2})}_1\right)
+\end{equation}
+where $\delta$ is a margin chosen as an hyperparameter.
+
 \section{Results}
 %– Describe your experimental protocol (proportions used to divide the data into training, validation and test sets, data preprocessing, etc.).
 %– Describe your procedure for selecting hyper-parameters.
