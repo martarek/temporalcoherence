@@ -44,6 +44,7 @@ class TemporalNeuralNetwork(Learner):
                  sizes=[200,100,50],
                  seed=1234,
                  parameter_initialization=None,
+                 deltaDistance = 1,
                  n_epochs=10):
         self.lr=lr
         self.dc=dc
@@ -51,6 +52,7 @@ class TemporalNeuralNetwork(Learner):
         self.seed=seed
         self.parameter_initialization = parameter_initialization
         self.n_epochs=n_epochs
+        self.deltaDistance = deltaDistance
 
         # internal variable keeping track of the number of training iterations since initialization
         self.epoch = 0
@@ -66,7 +68,6 @@ class TemporalNeuralNetwork(Learner):
         This method allocates memory for the fprop/bprop computations (DONE)
         and initializes the parameters of the neural network (TODO)
         """
-
         self.n_classes = n_classes
         self.input_size = input_size
 
@@ -75,13 +76,14 @@ class TemporalNeuralNetwork(Learner):
         #########################
         # Initialize parameters #
         #########################
+        self.inputTensor1 = T.tensor.matrix("input1").reshape((batchsize,1,72,72))
+        self.inputTensor2 = T.tensor.matrix("input2").reshape((batchsize,1,72,72))
 
         self.rng = np.random.mtrand.RandomState(self.seed)   # create random number generator
 
         self.n_updates = 0 # To keep track of the number of updates, to decrease the learning rate
 
-        self.inputTensor1 = T.tensor.matrix("input").reshape((batchsize,1,72,72))
-        self.inputTensor2 = T.tensor.matrix("input").reshape((batchsize,1,72,72))
+
         targets = T.tensor.ivector('target')
 
 
@@ -97,17 +99,17 @@ class TemporalNeuralNetwork(Learner):
         C7_1 = abs(self.createConvolutionLayer(S6_1, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
 
 
-        C1_2 = abs(self.createConvolutionLayer(self.inputTensor2, filter_shapes[0], (batchsize,1,72,72)))
-        S2_2 = self.createPoolingLayer(C1_2, (2, 2), filter_shapes[0])
-        C3_2 = abs(self.createConvolutionLayer(S2_2, filter_shapes[1], (batchsize, self.sizes[0], 35, 35)))
-        S4_2 = self.createPoolingLayer(C3_2, (2, 2), filter_shapes[1])
-        C5_2 = abs(self.createConvolutionLayer(S4_2, filter_shapes[2], (batchsize, self.sizes[1], 16, 16)))
-        S6_2 = self.createPoolingLayer(C5_2, (2, 2), filter_shapes[2])
-        C7_2 = abs(self.createConvolutionLayer(S6_2, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
+        C1_2 = abs(self.createConvolutionLayerUsingParams(self.inputTensor2, filter_shapes[0], (batchsize,1,72,72),self.params[0]))
+        S2_2 = self.createPoolingLayerUsingParams(C1_2, (2, 2), self.params[1])
+        C3_2 = abs(self.createConvolutionLayerUsingParams(S2_2, filter_shapes[1], (batchsize, self.sizes[0], 35, 35),self.params[2]))
+        S4_2 = self.createPoolingLayerUsingParams(C3_2, (2, 2),self.params[3])
+        C5_2 = abs(self.createConvolutionLayerUsingParams(S4_2, filter_shapes[2], (batchsize, self.sizes[1], 16, 16),self.params[4]))
+        S6_2 = self.createPoolingLayerUsingParams(C5_2, (2, 2),self.params[5])
+        C7_2 = abs(self.createConvolutionLayerUsingParams(S6_2, filter_shapes[3], (batchsize, self.sizes[2], 6, 6),self.params[6]))
 
 
         output_layer = [self.createSigmoidLayer(C7_1.flatten(2), self.sizes[-1], 1),
-                        self.createSigmoidLayer(C7_2.flatten(2), self.sizes[-1], 1)]
+                        self.createSigmoidLayerUsingParams(C7_2.flatten(2), self.params[-2],self.params[-1])]
 
         cost_FirstPhase = self.training_loss(output_layer[0], targets)
 
@@ -141,11 +143,11 @@ class TemporalNeuralNetwork(Learner):
                                       allow_input_downcast=True)
 
 
-        self.cost_function = T.function([self.inputTensor], nll, allow_input_downcast=True)
+        self.cost_function = T.function([self.inputTensor1], nll, allow_input_downcast=True)
 
-        self.pred_y = T.function([self.inputTensor], T.tensor.argmax(output_layer, axis=1),
+        self.pred_y = T.function([self.inputTensor1], T.tensor.argmax(output_layer, axis=1),
                                  allow_input_downcast=True)
-        self.theano_fprop = T.function([self.inputTensor], output_layer,allow_input_downcast=True)
+        self.theano_fprop = T.function([self.inputTensor1], output_layer,allow_input_downcast=True)
 
     def similarLossFunction(self, layersOfInterest):
         return (layersOfInterest[0] - layersOfInterest[1]).norm(1)
@@ -182,13 +184,21 @@ class TemporalNeuralNetwork(Learner):
                                )
         print(filter_shape)
 
-        b_values = np.zeros((filter_shape[0],), dtype=T.config.floatX)
-        b = T.shared(b_values)
-        conv_out = conv_out + b.dimshuffle('x', 0, 'x', 'x')
+        #b_values = np.zeros((filter_shape[0],), dtype=T.config.floatX)
+        #b = T.shared(b_values)
+        #conv_out = conv_out + b.dimshuffle('x', 0, 'x', 'x')
 
         self.params.append(W)
-        self.params.append(b)
+        #self.params.append(b)
         return conv_out
+
+    def createConvolutionLayerUsingParams(self, input, filter_shape, image_shape, W):
+        return conv.conv2d(input=input,
+                               filters=W,
+                               filter_shape=filter_shape,
+                               image_shape=image_shape
+                               )
+
 
     def createPoolingLayer(self, input, poolsize, prev_filter_shape):
         pool_out = downsample.max_pool_2d(input=input, ds=poolsize, ignore_border=True)
@@ -197,6 +207,10 @@ class TemporalNeuralNetwork(Learner):
         b = T.shared(value=b_values, borrow=True)
         self.params.append(b)
 
+        return T.tensor.tanh(pool_out + b.dimshuffle('x', 0, 'x', 'x'))
+
+    def createPoolingLayerUsingParams(self, input, poolsize, b):
+        pool_out = downsample.max_pool_2d(input=input, ds=poolsize, ignore_border=True)
         return T.tensor.tanh(pool_out + b.dimshuffle('x', 0, 'x', 'x'))
 
     def createSigmoidLayer(self, input, nkerns, img_size):
@@ -215,6 +229,9 @@ class TemporalNeuralNetwork(Learner):
         )
         self.params.append(W)
         self.params.append(b)
+        return T.tensor.nnet.softmax(T.tensor.dot(input, W) + b)
+
+    def createSigmoidLayerUsingParams(self, input, W, b):
         return T.tensor.nnet.softmax(T.tensor.dot(input, W) + b)
 
     def forget(self):

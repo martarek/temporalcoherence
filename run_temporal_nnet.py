@@ -6,7 +6,7 @@ import copy
 from string import Template
 import mlpython.datasets.store as dataset_store
 import mlpython.mlproblems.generic as mlpb
-from nnet import NeuralNetwork
+from temporal_nnet import TemporalNeuralNetwork
 import dataset
 
 sys.argv.pop(0);  # Remove first argument
@@ -86,11 +86,11 @@ for index in range(columnCount):
         str_header += '\t'
         str_modelinfo += '\t'
 str_header += '\n'
-result_file = 'results_nnet_ocr_letters.txt'
+result_file = 'results_temporal_nnet_ocr_letters.txt'
 
 # Preparing result file
 header_line = ""
-header_line += 'lr\tdc\tsizes\tL2\tL1\tseed\tbatchsize\t'
+header_line += 'lr\tdc\tsizes\tseed\tbatchsize\t'
 header_line += str_header
 if not os.path.exists(result_file):
     f = open(result_file, 'w')
