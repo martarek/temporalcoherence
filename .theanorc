@@ -1,0 +1,8 @@
+[global]
+floatX = float64
+exception_verbosity=high
+warn_float64 = warn
+allow_gc = False
+openmp = True
+int_division = raise
+optimzer_verbose = True
