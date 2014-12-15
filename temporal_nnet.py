@@ -182,7 +182,6 @@ class TemporalNeuralNetwork(Learner):
                                filter_shape=filter_shape,
                                image_shape=image_shape
                                )
-        print(filter_shape)
 
         #b_values = np.zeros((filter_shape[0],), dtype=T.config.floatX)
         #b = T.shared(b_values)
