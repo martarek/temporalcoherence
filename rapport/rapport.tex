@@ -5,7 +5,22 @@
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{amsfonts}
+\usepackage{mathtools}
 %\documentstyle[nips13submit_09,times,art10]{article} % For LaTeX 2.09
+
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+
+% Swap the definition of \abs* and \norm*, so that \abs
+% and \norm resizes the size of the brackets, and the 
+% starred version does not.
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
 
 
 \title{Projet}
@@ -40,20 +55,40 @@ Olivier Gagnon \And Bernard Lebel
 \section{Introduction}
 
 % Describe the problem or application that your project is concerned with.
-Object recognition is a classification problem in which we try to identify an object in a picture using classification. For this purpoise, several database can be used to help the creation of algorithms to solve this problem. However, these database are very expensive. To alleviate this problem, algorithms can use non-labeled data to extract information useful to this problem.
+Object recognition is a classification problem in which we try to identify an object in a picture using classification. For this purpose, several database can be used to help the creation of algorithms to solve this problem. However, these database are very expensive. To alleviate this problem, algorithms can use non-labeled data to extract information useful to this problem.
 
-One of the information that can prove useful is temporal coherence. For example, in a video sequence, it is likely that two adjacent frames contains the same objects rather than radically different ones. This is true to many other domains were data is sequential in nature.
+One of the information that can prove useful is temporal coherence. For example, in a video sequence, it is likely that two adjacent frames contains the same objects rather than radically different ones. This is true in many other domains were data is of sequential nature.
 
-The method chosen to solve this problem is to use temporal coherence as a regularizer to exploit this information in unlabeled temporal data\cite{?}.
+The method chosen to solve this problem is to use temporal coherence as a regularizer to exploit this information in unlabeled temporal data.\cite{?}
 %Mention the method you have chosen and why it solves your problem or is a good choice for your application.
+This method is a good choice for our problem, because it extracts information from a temporal database, but can use it to make object categorization in context were the inputs are non-sequential. 
 
 \section{Description}
+\subsection{COIL100 dataset}
 %-Describe in detail your method / algorithm implementation. Here are some things that you could discuss :
 %    – Description of the data.
 %    – Description and notation for the inputs.
 %    – Description and notation for the targets.
+
 The dataset used in this project is the COIL100 dataset\cite{?}. This dataset presents the pictures of 100 objects which are placed on a turntable and rotated by increments of 5 degrees by picture. It contains 72 images by object, for a total of 7200 pictures. The input consists of rgb images in the gif format and the target consists of an integer from 1 to 100.
 
+\begin{figure}[h]
+\label{fig:coil100}
+\center
+\includegraphics[scale=1]{../../images/obj67__220.png} 
+\includegraphics[scale=1]{../../images/obj23__220.png} 
+\includegraphics[scale=1]{../../images/obj26__220.png} 
+\includegraphics[scale=1]{../../images/obj13__220.png} 
+\includegraphics[scale=1]{../../images/obj29__220.png}  
+\includegraphics[scale=1]{../../images/obj67__110.png} 
+\includegraphics[scale=1]{../../images/obj23__110.png} 
+\includegraphics[scale=1]{../../images/obj26__110.png} 
+\includegraphics[scale=1]{../../images/obj13__110.png} 
+\includegraphics[scale=1]{../../images/obj29__110.png}  
+\caption{Examples from the coil100 dataset}
+\end{figure}
+
+\subsection{Algorithm}
 %– Write a description of the general principles behind your approach. Here are some things that you could discuss :
 %    – Type of learning (supervised / unsupervised, discriminative / generative).
 %    – Intuition behind the training objective your algorithm optimizes.
@@ -70,17 +105,42 @@ The algorithm implemented in this project is a semi-supervised algorithm. The ba
 %    - Description of hyper-parameters.
 %    – Pseudocodes of your algorithm.
 \subsection{Details}
-The convolutionnal-neural-net\cite{?} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. 
+The convolutionnal-neural-net\cite{?} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. Convolutionnal-neural-networks are a good choice for visual recognition tasks because they can take the 2D topology of the data into account and because their structure limits the number of parameters to be learned.
 \begin{figure}[h]
 \label{fig:convolutionnal-neural-net}
 \includegraphics[width=\textwidth]{CNN.png}
 \caption{A convolutionnal neural network}
 \end{figure}
 
-\subsubsection{Convolution}
+\subsubsection{Convolution and subsampling}
 
+The convolution layer $C_l$ in the architecture presented in figure~\ref{fig:convolutionnal-neural-net} does a linear $K^l \times K^l$ filtering over the the image input planes $z^{l-1}_{1... N^{l-1}}$. A number of planes $z^l_{1...N^l}$are output, where the value at the position $(i, j)$ is given by:
+\begin{equation}
+z^l_p(i,j) = \abs{b^l_p + \sum_q \sum_{s=1}^{K^l} \sum_{t=1}^{K^l} w^l_{p,q,s,t}z_q^{l-1}(i-1+s, j-1+t)}
+\end{equation}
+Where $b^l_p$ and $w^l_{p,q,s,t}$ are learned by backpropagation. The absolute value is taken to create an invariance to the direction of the edges in the edge detection filters.
 
+The subsampling is done by taking the maximum value over non-overlapping windows.
 
+A $\tanh()$ function is applied after the maxpooling layer to induce a non-linearity.
+
+Finally, a last layer is a fully-connected layer which outputs one value per class. A "softmax" layer is then added to compute a probability:
+\begin{equation}
+\tilde{P_p} = \frac{\exp (z_p^{l-1})}{\sum_q \exp (z_q^{l-1})}
+\end{equation}
+
+\subsection{Optimization}
+
+Three cost functions are optimized during training. In each case, stockastic gradients descent is used.\cite{?} 
+
+The first cost function is the negative log-likelihood $L(\mathbf{\theta}) = \sum_{n=1}^N L(\mathbf{\theta},\mathbf{x}_n, y_n)$.
+
+The gradient descent update is as follow:
+\begin{equation}
+\theta \leftarrow \theta - \lambda \frac{\partial L(\theta, \mathbf{x}
+, y)}{\partial \theta}
+\end{equation}
+where $\lambda$ is a learning rate.
 \section{Results}
 %– Describe your experimental protocol (proportions used to divide the data into training, validation and test sets, data preprocessing, etc.).
 %– Describe your procedure for selecting hyper-parameters.
