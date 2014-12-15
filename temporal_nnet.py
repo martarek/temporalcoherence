@@ -89,35 +89,44 @@ class TemporalNeuralNetwork(Learner):
                          (self.sizes[2], self.sizes[1], 5, 5), (self.sizes[3], self.sizes[2], 6, 6)]
 
         C1_1 = abs(self.createConvolutionLayer(self.inputTensor, filter_shapes[0], (batchsize,1,72,72)))
-        S2_1 = self.createPoolingLayer(C1, (2, 2), filter_shapes[0])
-        C3_1 = abs(self.createConvolutionLayer(S2, filter_shapes[1], (batchsize, self.sizes[0], 35, 35)))
-        S4_1 = self.createPoolingLayer(C3, (2, 2), filter_shapes[1])
-        C5_1 = abs(self.createConvolutionLayer(S4, filter_shapes[2], (batchsize, self.sizes[1], 16, 16)))
-        S6_1 = self.createPoolingLayer(C5, (2, 2), filter_shapes[2])
-        C7_1 = abs(self.createConvolutionLayer(S6, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
-        output_layer_1 = self.createSigmoidLayer(C7.flatten(2), self.sizes[-1], 1)
+        S2_1 = self.createPoolingLayer(C1_1, (2, 2), filter_shapes[0])
+        C3_1 = abs(self.createConvolutionLayer(S2_1, filter_shapes[1], (batchsize, self.sizes[0], 35, 35)))
+        S4_1 = self.createPoolingLayer(C3_1, (2, 2), filter_shapes[1])
+        C5_1 = abs(self.createConvolutionLayer(S4_1, filter_shapes[2], (batchsize, self.sizes[1], 16, 16)))
+        S6_1 = self.createPoolingLayer(C5_1, (2, 2), filter_shapes[2])
+        C7_1 = abs(self.createConvolutionLayer(S6_1, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
+
 
         C1_2 = abs(self.createConvolutionLayer(self.inputTensor, filter_shapes[0], (batchsize,1,72,72)))
-        S2_2 = self.createPoolingLayer(C1, (2, 2), filter_shapes[0])
-        C3_2 = abs(self.createConvolutionLayer(S2, filter_shapes[1], (batchsize, self.sizes[0], 35, 35)))
-        S4_2 = self.createPoolingLayer(C3, (2, 2), filter_shapes[1])
-        C5_2 = abs(self.createConvolutionLayer(S4, filter_shapes[2], (batchsize, self.sizes[1], 16, 16)))
-        S6_2 = self.createPoolingLayer(C5, (2, 2), filter_shapes[2])
-        C7_2 = abs(self.createConvolutionLayer(S6, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
-        output_layer_2 = self.createSigmoidLayer(C7.flatten(2), self.sizes[-1], 1)
+        S2_2 = self.createPoolingLayer(C1_2, (2, 2), filter_shapes[0])
+        C3_2 = abs(self.createConvolutionLayer(S2_2, filter_shapes[1], (batchsize, self.sizes[0], 35, 35)))
+        S4_2 = self.createPoolingLayer(C3_2, (2, 2), filter_shapes[1])
+        C5_2 = abs(self.createConvolutionLayer(S4_2, filter_shapes[2], (batchsize, self.sizes[1], 16, 16)))
+        S6_2 = self.createPoolingLayer(C5_2, (2, 2), filter_shapes[2])
+        C7_2 = abs(self.createConvolutionLayer(S6_2, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
 
-        cost_FirstPhase = self.training_loss(output_layer_1, targets)
 
-        cost_SecondPhase_1 = self.training_loss(output_layer_1, targets)
-        cost_SecondPhase_2 = self.training_loss(output_layer_2, targets)
+        output_layer = [self.createSigmoidLayer(C7_1.flatten(2), self.sizes[-1], 1),
+                        self.createSigmoidLayer(C7_2.flatten(2), self.sizes[-1], 1)]
 
-        nll = -T.tensor.log(output_layer)#-T.tensor.mean(T.tensor.log(output_layer))
-        grads = T.tensor.grad(cost, self.params)
+        cost_FirstPhase = self.training_loss(output_layer[0], targets)
+
+        #Fixme Use Training loss from article. Must Include a third phase
+        cost_SecondPhase = [self.training_loss(output_layer[0], targets),
+                            self.training_loss(output_layer[1], targets)]
+
+        nll = -T.tensor.log(output_layer[0])#-T.tensor.mean(T.tensor.log(output_layer))
+        grads_FirstPhase = T.tensor.grad(cost_FirstPhase, self.params)
+
+        grads_SecondPhase =  [T.tensor.grad(cost_SecondPhase[0], self.params),
+                              T.tensor.grad(cost_SecondPhase[1], self.params)]
+
 
         n_updates = T.shared(0.)
 
         #updates = [(param_i, param_i - self.lr * grad_i) for param_i, grad_i in zip(self.params, grads)]
-        updates = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params, grads)]
+        updates_FirstPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads)]
+        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads)] #FIXME Input correct lost function
         updates += [(n_updates, n_updates + 1.)] #TODO make proper update function
 
         self.train_batch = T.function([self.inputTensor, targets], None, updates=updates, #TODO 2 inputTensors
@@ -129,8 +138,8 @@ class TemporalNeuralNetwork(Learner):
                                  allow_input_downcast=True)
         self.theano_fprop = T.function([self.inputTensor], output_layer,allow_input_downcast=True)
 
-    def update_param(self, param_i, grad_i, n_updates):
-        return param_i, param_i - grad_i * (self.lr / (1. + (n_updates * self.dc))) #FIXME Do not account for decreasing constant
+    def update_param(self, param_i, grad_i):#, n_updates):
+        return param_i, param_i - grad_i #* (self.lr / (1. + (n_updates * self.dc))) #FIXME Do not account for decreasing constant
 
     def createConvolutionLayer(self, input, filter_shape, image_shape):
 
