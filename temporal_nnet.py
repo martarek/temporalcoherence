@@ -128,11 +128,11 @@ class TemporalNeuralNetwork(Learner):
 
         grads_ThirdPhase = T.tensor.grad(cost_ThirdPhase, self.params[:-2])
 
-        #n_updates = T.shared(0.)
+        n_updates = T.shared(0.)
 
-        updates_FirstPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
-        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params[:-2], grads_SecondPhase)] #FIXME Input correct lost function
-        updates_ThirdPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params[:-2], grads_ThirdPhase)] #FIXME Input correct lost function
+        updates_FirstPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
+        updates_SecondPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params[:-2], grads_SecondPhase)]
+        updates_ThirdPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params[:-2], grads_ThirdPhase)]
 
 
         self.train_batch[self.FIRST_PHASE] = T.function([self.inputTensor1, targets], None, updates=updates_FirstPhase,
@@ -155,8 +155,8 @@ class TemporalNeuralNetwork(Learner):
     def dissimilarLossFunction(self, layersOfInterest):
         return T.tensor.max((0, self.deltaDistance - (layersOfInterest[0] - layersOfInterest[1]).norm(1)))
 
-    def update_param(self, param_i, grad_i):#, n_updates):
-        return param_i, param_i - grad_i * self.lr#(self.lr / (1. + (n_updates * self.dc))) #FIXME Do not account for decreasing constant
+    def update_param(self, param_i, grad_i, n_updates):
+        return param_i, param_i - grad_i * (self.lr / (1. + (n_updates * self.dc)))
 
     def createConvolutionLayer(self, input, filter_shape, image_shape):
 
@@ -266,9 +266,9 @@ class TemporalNeuralNetwork(Learner):
             for input, target in trainset:
                 consecutivesFrames = trainset.data.getConsecutivesFrames(batchsize)
                 nonConsecutivesFrames = trainset.data.getNonConsecutivesFrames(batchsize)
-                self.train_batch[self.FIRST_PHASE](input.reshape(batchsize,1,72,72), target)
-                self.train_batch[self.SECOND_PHASE](consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
-                self.train_batch[self.THIRD_PHASE](nonConsecutivesFrames[0].reshape(batchsize,1,72,72), nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
+                scoreFirst = self.train_batch[self.FIRST_PHASE](input.reshape(batchsize,1,72,72), target)
+                scoreSecond = self.train_batch[self.SECOND_PHASE](consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
+                scoreThird = self.train_batch[self.THIRD_PHASE](nonConsecutivesFrames[0].reshape(batchsize,1,72,72),nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
                 self.n_updates += 1
         self.epoch = self.n_epochs
 
