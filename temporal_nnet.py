@@ -55,6 +55,11 @@ class TemporalNeuralNetwork(Learner):
         # internal variable keeping track of the number of training iterations since initialization
         self.epoch = 0
         self.params = []
+        self.train_batch = [0,0,0]
+        self.FIRST_PHASE = 0
+        self.SECOND_PHASE = 1
+        self.THIRD_PHASE = 2
+
 
     def initialize(self, input_size, n_classes, batchsize):
         """
@@ -107,32 +112,32 @@ class TemporalNeuralNetwork(Learner):
         cost_FirstPhase = self.training_loss(output_layer[0], targets)
 
         #Fixme Use Training loss from article. Must Include a third phase
-        cost_SecondPhase = self.similarLossFunction([output_layer[0], output_layer[1]])
+        cost_SecondPhase = self.similarLossFunction([C7_1,C7_2])
 
-        cost_ThirdPhase = self.dissimilarLossFunction([output_layer[0], output_layer[1]])
+        cost_ThirdPhase = self.dissimilarLossFunction([C7_1,C7_2])
 
 
 
         nll = -T.tensor.log(output_layer[0])#-T.tensor.mean(T.tensor.log(output_layer))
         grads_FirstPhase = T.tensor.grad(cost_FirstPhase, self.params)
 
-        grads_SecondPhase =  T.tensor.grad(cost_SecondPhase, self.params)
+        #We stop before the last layer, being the output layer, hence the self.params[:-1]
+        grads_SecondPhase =  T.tensor.grad(cost_SecondPhase, self.params[:-1])
 
-        grads_ThirdPhase = T.tensor.grad(cost_ThirdPhase, self.params)
+        grads_ThirdPhase = T.tensor.grad(cost_ThirdPhase, self.params[:-1])
 
         #n_updates = T.shared(0.)
 
-
         updates_FirstPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
-        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_SecondPhase)] #FIXME Input correct lost function
-        updates_ThirdPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_ThirdPhase)] #FIXME Input correct lost function
+        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params[:-1], grads_SecondPhase)] #FIXME Input correct lost function
+        updates_ThirdPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params[:-1], grads_ThirdPhase)] #FIXME Input correct lost function
 
 
-        self.train_batchFirstPhase = T.function([self.inputTensor1, targets], None, updates=updates_FirstPhase,
+        self.train_batch[self.FIRST_PHASE] = T.function([self.inputTensor1, targets], None, updates=updates_FirstPhase,
                                       allow_input_downcast=True)
-        self.train_batchSecondPhase = T.function([self.inputTensor1, self.inputTensor2], None, updates=updates_SecondPhase,
+        self.train_batch[self.SECOND_PHASE] = T.function([self.inputTensor1, self.inputTensor2], None, updates=updates_SecondPhase,
                                       allow_input_downcast=True)
-        self.train_batchThirdPhase = T.function([self.inputTensor1, self.inputTensor2, targets], None, updates=updates_ThirdPhase,
+        self.train_batch[self.THIRD_PHASE] = T.function([self.inputTensor1, self.inputTensor2], None, updates=updates_ThirdPhase,
                                       allow_input_downcast=True)
 
 
@@ -244,9 +249,9 @@ class TemporalNeuralNetwork(Learner):
             for input, target in trainset:
                 consecutivesFrames = trainset.getConsecutivesFrames()
                 nonConsecutivesFrames = trainset.getNonConsecutivesFrames()
-                self.train_batchFirstPhase(input.reshape(batchsize,1,72,72), target)
-                self.train_batchSecondPhase(consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
-                self.train_batchThirdPhase(nonConsecutivesFrames[0].reshape(batchsize,1,72,72), nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
+                self.train_batch[self.FIRST_PHASE](input.reshape(batchsize,1,72,72), target)
+                self.train_batch[self.SECOND_PHASE](consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
+                self.train_batch[self.THIRD_PHASE](nonConsecutivesFrames[0].reshape(batchsize,1,72,72), nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
                 self.n_updates += 1
         self.epoch = self.n_epochs
 

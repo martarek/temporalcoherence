@@ -13,9 +13,9 @@ sys.argv.pop(0);  # Remove first argument
 
 # Check if every option(s) from parent's script are here.
 if 5 != len(sys.argv):
-    print "Usage: python run_nnet.py lr dc sizes(1x4) seed batchsize "
+    print "Usage: python run_temporal_nnet.py lr dc sizes(1x4) seed batchsize "
     print ""
-    print "Ex.: python run_nnet.py 0.1 0 [80,40,20,10] 1234 6"
+    print "Ex.: python run_temporal_nnet.py 0.1 0 [80,40,20,10] 1234 6"
     sys.exit()
 
 # Set the constructor
