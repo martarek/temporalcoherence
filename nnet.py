@@ -181,13 +181,6 @@ class NeuralNetwork(Learner):
         self.params.append(b)
         return T.tensor.nnet.softmax(T.tensor.dot(input, W) + b)
 
-    def forget(self):
-        """
-        Resets the neural network to its original state (DONE)
-        """
-        self.initialize(self.input_size,self.targets, 1)
-        self.epoch = 0
-
     #TODO THEANO-IZE
     def train(self,trainset):
         """

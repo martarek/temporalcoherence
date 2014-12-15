@@ -75,14 +75,15 @@ class TemporalNeuralNetwork(Learner):
 
         self.n_updates = 0 # To keep track of the number of updates, to decrease the learning rate
 
-        self.inputTensor = T.tensor.matrix("input").reshape((batchsize,1,72,72))
+        self.inputTensor1 = T.tensor.matrix("input").reshape((batchsize,1,72,72))
+        self.inputTensor2 = T.tensor.matrix("input").reshape((batchsize,1,72,72))
         targets = T.tensor.ivector('target')
 
 
         filter_shapes = [(self.sizes[0], 1, 3, 3), (self.sizes[1], self.sizes[0], 4, 4),
                          (self.sizes[2], self.sizes[1], 5, 5), (self.sizes[3], self.sizes[2], 6, 6)]
 
-        C1_1 = abs(self.createConvolutionLayer(self.inputTensor, filter_shapes[0], (batchsize,1,72,72)))
+        C1_1 = abs(self.createConvolutionLayer(self.inputTensor1, filter_shapes[0], (batchsize,1,72,72)))
         S2_1 = self.createPoolingLayer(C1_1, (2, 2), filter_shapes[0])
         C3_1 = abs(self.createConvolutionLayer(S2_1, filter_shapes[1], (batchsize, self.sizes[0], 35, 35)))
         S4_1 = self.createPoolingLayer(C3_1, (2, 2), filter_shapes[1])
@@ -91,7 +92,7 @@ class TemporalNeuralNetwork(Learner):
         C7_1 = abs(self.createConvolutionLayer(S6_1, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
 
 
-        C1_2 = abs(self.createConvolutionLayer(self.inputTensor, filter_shapes[0], (batchsize,1,72,72)))
+        C1_2 = abs(self.createConvolutionLayer(self.inputTensor2, filter_shapes[0], (batchsize,1,72,72)))
         S2_2 = self.createPoolingLayer(C1_2, (2, 2), filter_shapes[0])
         C3_2 = abs(self.createConvolutionLayer(S2_2, filter_shapes[1], (batchsize, self.sizes[0], 35, 35)))
         S4_2 = self.createPoolingLayer(C3_2, (2, 2), filter_shapes[1])
@@ -124,11 +125,16 @@ class TemporalNeuralNetwork(Learner):
 
         updates_FirstPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
         updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_SecondPhase)] #FIXME Input correct lost function
-        updates_SecondPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_ThirdPhase)] #FIXME Input correct lost function
-        #updates += [(n_updates, n_updates + 1.)] #TODO make proper update function
+        updates_ThirdPhase = [self.update_param(param_i, grad_i) for param_i, grad_i in zip(self.params, grads_ThirdPhase)] #FIXME Input correct lost function
 
-        self.train_batch = T.function([self.inputTensor, targets], None, updates=updates, #TODO 2 inputTensors
+
+        self.train_batchFirstPhase = T.function([self.inputTensor1, targets], None, updates=updates_FirstPhase,
                                       allow_input_downcast=True)
+        self.train_batchSecondPhase = T.function([self.inputTensor1, self.inputTensor2], None, updates=updates_SecondPhase,
+                                      allow_input_downcast=True)
+        self.train_batchThirdPhase = T.function([self.inputTensor1, self.inputTensor2, targets], None, updates=updates_ThirdPhase,
+                                      allow_input_downcast=True)
+
 
         self.cost_function = T.function([self.inputTensor], nll, allow_input_downcast=True)
 
@@ -236,7 +242,11 @@ class TemporalNeuralNetwork(Learner):
 
         for it in range(self.epoch,self.n_epochs):
             for input, target in trainset:
-                score = self.train_batch(input.reshape(batchsize,1,72,72), target)
+                consecutivesFrames = trainset.getConsecutivesFrames()
+                nonConsecutivesFrames = trainset.getNonConsecutivesFrames()
+                self.train_batchFirstPhase(input.reshape(batchsize,1,72,72), target)
+                self.train_batchSecondPhase(consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
+                self.train_batchThirdPhase(nonConsecutivesFrames[0].reshape(batchsize,1,72,72), nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
                 self.n_updates += 1
         self.epoch = self.n_epochs
 
