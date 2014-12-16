@@ -12,17 +12,17 @@ import dataset
 sys.argv.pop(0);  # Remove first argument
 
 # Check if every option(s) from parent's script are here.
-if 5 != len(sys.argv):
-    print "Usage: python run_temporal_nnet.py lr dc sizes(1x4) seed batchsize "
+if 6 != len(sys.argv):
+    print "Usage: python run_temporal_nnet.py lrFirstPhase lrSecondPhase dc sizes(1x4) seed batchsize "
     print ""
-    print "Ex.: python run_temporal_nnet.py 0.1 0 [80,40,20,10] 1234 6"
+    print "Ex.: python run_temporal_nnet.py 0.001 0.005 0 [80,40,20,10] 1234 6"
     sys.exit()
 
 # Set the constructor
 
-str_ParamOption = "lr=" + sys.argv[0] + ", " + "dc=" + sys.argv[1] + ", " + "sizes=" + sys.argv[2] + ", " + "seed=" + sys.argv[3]
-str_ParamOptionValue = sys.argv[0] + "\t" + sys.argv[1] + "\t" + sys.argv[2] + "\t" + sys.argv[3] + "\t" + sys.argv[4]
-batchSize = int(sys.argv[4])
+str_ParamOption = "lrFirstPhase=" + sys.argv[0] + ", " + "lrSecondPhase="+ sys.argv[1] + ", " + "dc=" + sys.argv[2] + ", " + "sizes=" + sys.argv[3] + ", " + "seed=" + sys.argv[4]
+str_ParamOptionValue = sys.argv[0] + "\t" + sys.argv[1] + "\t" + sys.argv[2] + "\t" + sys.argv[3] + "\t" + sys.argv[4] + "\t" + sys.argv[5]
+batchSize = int(sys.argv[5])
 
 try:
     objectString = 'myObject = TemporalNeuralNetwork(n_epochs=1,' + str_ParamOption + ')'
@@ -90,7 +90,7 @@ result_file = 'results_temporal_nnet_ocr_letters.txt'
 
 # Preparing result file
 header_line = ""
-header_line += 'lr\tdc\tsizes\tseed\tbatchsize\t'
+header_line += 'lrFirstPhase\tlrSecondPhase\tdc\tsizes\tseed\tbatchsize\t'
 header_line += str_header
 if not os.path.exists(result_file):
     f = open(result_file, 'w')

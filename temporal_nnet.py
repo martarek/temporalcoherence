@@ -40,14 +40,16 @@ class TemporalNeuralNetwork(Learner):
 
 
     def __init__(self,
-                 lr=0.001,
+                 lrFirstPhase = 0.001,
+                 lrSecondPhase=0.001,
                  dc=0,
                  sizes=(50,100,150,200),
                  seed=1234,
                  parameter_initialization=None,
                  deltaDistance = 1,
                  n_epochs=10):
-        self.lr=lr
+        self.lrFirstPhase=lrFirstPhase
+        self.lrSecondPhase = lrSecondPhase
         self.dc=dc
         self.sizes=sizes
         self.seed=seed
@@ -118,11 +120,13 @@ class TemporalNeuralNetwork(Learner):
         output_layer = [self.createSigmoidLayer(nnet1[-1].flatten(2), self.sizes[-1], 1),
                         self.createSigmoidLayerUsingParams(nnet2[-1].flatten(2), self.params[-2],self.params[-1])]
 
+        numberOfValuesLastLayer = (filter_shapes[3][0] * np.prod(filter_shapes[3][2:]))
+
         cost_FirstPhase = self.training_loss(output_layer[0], targets)
 
-        cost_SecondPhase = self.similarLossFunction([nnet1[-1],nnet2[-1]], batchsize)
+        cost_SecondPhase = self.similarLossFunction([nnet1[-1],nnet2[-1]], batchsize, numberOfValuesLastLayer)
 
-        cost_ThirdPhase = self.dissimilarLossFunction([nnet1[-1],nnet2[-1]], batchsize)
+        cost_ThirdPhase = self.dissimilarLossFunction([nnet1[-1],nnet2[-1]], batchsize, numberOfValuesLastLayer)
 
 
 
@@ -135,20 +139,20 @@ class TemporalNeuralNetwork(Learner):
 
         n_updates = T.shared(0.)
 
-        updates_FirstPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
+        updates_FirstPhase = [self.update_param(param_i, grad_i, n_updates, self.lrFirstPhase) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
         updates_FirstPhase += [(n_updates, n_updates + 1.)]
 
-        updates_SecondPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params[:-2], grads_SecondPhase)]
+        updates_SecondPhase = [self.update_param(param_i, grad_i, n_updates, self.lrSecondPhase) for param_i, grad_i in zip(self.params[:-2], grads_SecondPhase)]
         updates_SecondPhase += [(n_updates, n_updates + 1.)]
 
-        updates_ThirdPhase = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params[:-2], grads_ThirdPhase)]
+        updates_ThirdPhase = [self.update_param(param_i, grad_i, n_updates, self.lrSecondPhase) for param_i, grad_i in zip(self.params[:-2], grads_ThirdPhase)]
         updates_ThirdPhase += [(n_updates, n_updates + 1.)]
 
-        self.train_batch[self.FIRST_PHASE] = T.function([self.inputTensor1, targets], None, updates=updates_FirstPhase,
+        self.train_batch[self.FIRST_PHASE] = T.function([self.inputTensor1, targets], cost_FirstPhase, updates=updates_FirstPhase,
                                                         allow_input_downcast=True)
-        self.train_batch[self.SECOND_PHASE] = T.function([self.inputTensor1, self.inputTensor2], None, updates=updates_SecondPhase,
+        self.train_batch[self.SECOND_PHASE] = T.function([self.inputTensor1, self.inputTensor2], cost_SecondPhase, updates=updates_SecondPhase,
                                                          allow_input_downcast=True)
-        self.train_batch[self.THIRD_PHASE] = T.function([self.inputTensor1, self.inputTensor2], None, updates=updates_ThirdPhase,
+        self.train_batch[self.THIRD_PHASE] = T.function([self.inputTensor1, self.inputTensor2], cost_ThirdPhase, updates=updates_ThirdPhase,
                                                         allow_input_downcast=True)
 
 
@@ -162,14 +166,14 @@ class TemporalNeuralNetwork(Learner):
         self.theano_fprop = T.function([inputTensorToSelect], testLayer,allow_input_downcast=True)
 
 
-    def similarLossFunction(self, layersOfInterest,batchSize):
-        return (layersOfInterest[0] - layersOfInterest[1]).norm(1) /batchSize
+    def similarLossFunction(self, layersOfInterest,batchSize, layerSizes):
+        return (layersOfInterest[0] - layersOfInterest[1]).norm(1) /batchSize /layerSizes
 
-    def dissimilarLossFunction(self, layersOfInterest, batchSize):
-        return T.tensor.max((0, self.deltaDistance - (layersOfInterest[0] - layersOfInterest[1]).norm(1)))/ batchSize
+    def dissimilarLossFunction(self, layersOfInterest, batchSize, layerSizes):
+        return T.tensor.max((0, self.deltaDistance - (layersOfInterest[0] - layersOfInterest[1]).norm(1) / batchSize / layerSizes))
 
-    def update_param(self, param_i, grad_i, n_updates):
-        return param_i, param_i - grad_i * (self.lr / (1. + (n_updates * self.dc)))
+    def update_param(self, param_i, grad_i, n_updates, lr):
+        return param_i, param_i - grad_i * (lr / (1. + (n_updates * self.dc)))
 
     def createConvolutionLayer(self, input, filter_shape, image_shape):
 
@@ -267,9 +271,10 @@ class TemporalNeuralNetwork(Learner):
             for input, target in trainset:
                 consecutivesFrames = trainset.data.getConsecutivesFrames(batchsize)
                 nonConsecutivesFrames = trainset.data.getNonConsecutivesFrames(batchsize)
-                self.train_batch[self.FIRST_PHASE](input.reshape(batchsize,1,72,72), target)
-                self.train_batch[self.SECOND_PHASE](consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
-                self.train_batch[self.THIRD_PHASE](nonConsecutivesFrames[0].reshape(batchsize,1,72,72),nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
+                firstScore = self.train_batch[self.FIRST_PHASE](input.reshape(batchsize,1,72,72), target)
+                secondScore = self.train_batch[self.SECOND_PHASE](consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
+                thirdScore = self.train_batch[self.THIRD_PHASE](nonConsecutivesFrames[0].reshape(batchsize,1,72,72),nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
+                print(firstScore,secondScore,thirdScore)
                 self.n_updates += 1
         self.epoch = self.n_epochs
 
