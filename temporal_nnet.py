@@ -38,10 +38,11 @@ class TemporalNeuralNetwork(Learner):
 
     """
 
+
     def __init__(self,
                  lr=0.001,
                  dc=0,
-                 sizes=[50,100,150,200],
+                 sizes=(50,100,150,200),
                  seed=1234,
                  parameter_initialization=None,
                  deltaDistance = 1,
@@ -71,8 +72,6 @@ class TemporalNeuralNetwork(Learner):
         self.n_classes = n_classes
         self.input_size = input_size
 
-        n_hidden_layers = len(self.sizes)
-
         #########################
         # Initialize parameters #
         #########################
@@ -90,32 +89,57 @@ class TemporalNeuralNetwork(Learner):
         filter_shapes = [(self.sizes[0], 1, 3, 3), (self.sizes[1], self.sizes[0], 4, 4),
                          (self.sizes[2], self.sizes[1], 5, 5), (self.sizes[3], self.sizes[2], 6, 6)]
 
-        C1_1 = abs(self.createConvolutionLayer(self.inputTensor1, filter_shapes[0], (batchsize,1,72,72)))
-        S2_1 = self.createPoolingLayer(C1_1, (2, 2), filter_shapes[0])
-        C3_1 = abs(self.createConvolutionLayer(S2_1, filter_shapes[1], (batchsize, self.sizes[0], 35, 35)))
-        S4_1 = self.createPoolingLayer(C3_1, (2, 2), filter_shapes[1])
-        C5_1 = abs(self.createConvolutionLayer(S4_1, filter_shapes[2], (batchsize, self.sizes[1], 16, 16)))
-        S6_1 = self.createPoolingLayer(C5_1, (2, 2), filter_shapes[2])
-        C7_1 = abs(self.createConvolutionLayer(S6_1, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
+        nnet1 = []
+        formattedSizes = [(batchsize,1,72,72),
+           (batchsize, self.sizes[0], 35, 35),
+           (batchsize, self.sizes[1], 16, 16),
+           (batchsize, self.sizes[2], 6, 6)]
+
+        for i in range(7):
+            if 7 % 2 != 0:
+                nnet1.append(self.createPoolingLayer(nnet1[-1], (2, 2), filter_shapes[i/2]))
+            else:
+                if i == 0:
+                    nnet1.append(abs(self.createConvolutionLayer(self.inputTensor1, filter_shapes[i/2], formattedSizes[i])))
+                else:
+                    nnet1.append(abs(self.createConvolutionLayer(nnet1[-1], filter_shapes[i/2], formattedSizes[i])))
+
+#        C1_1 = abs(self.createConvolutionLayer(self.inputTensor1, filter_shapes[0], (batchsize,1,72,72)))
+#        S2_1 = self.createPoolingLayer(C1_1, (2, 2), filter_shapes[0])
+#        C3_1 = abs(self.createConvolutionLayer(S2_1, filter_shapes[1], (batchsize, self.sizes[0], 35, 35)))
+#        S4_1 = self.createPoolingLayer(C3_1, (2, 2), filter_shapes[1])
+#        C5_1 = abs(self.createConvolutionLayer(S4_1, filter_shapes[2], (batchsize, self.sizes[1], 16, 16)))
+#        S6_1 = self.createPoolingLayer(C5_1, (2, 2), filter_shapes[2])
+#        C7_1 = abs(self.createConvolutionLayer(S6_1, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
+
+        nnet2 = []
+
+        for i in range(7):
+            if 7 % 2 != 0:
+                nnet2.append(self.createPoolingLayerUsingParams(nnet2[-1], (2, 2), self.params[i*2],self.params[i*2+1]))
+            else:
+                if i == 0:
+                    nnet2.append(abs(self.createConvolutionLayerUsingParams(self.inputTensor2, filter_shapes[i/2], formattedSizes[i], self.params[i*2],self.params[i*2+1])))
+                else:
+                    nnet2.append(abs(self.createConvolutionLayerUsingParams(nnet2[-1], filter_shapes[i/2], formattedSizes[i],self.params[i*2],self.params[i*2+1])))
+
+#        C1_2 = abs(self.createConvolutionLayerUsingParams(self.inputTensor2, filter_shapes[0], (batchsize,1,72,72),self.params[0]))
+#        S2_2 = self.createPoolingLayerUsingParams(C1_2, (2, 2), self.params[1])
+#        C3_2 = abs(self.createConvolutionLayerUsingParams(S2_2, filter_shapes[1], (batchsize, self.sizes[0], 35, 35),self.params[2]))
+#        S4_2 = self.createPoolingLayerUsingParams(C3_2, (2, 2),self.params[3])
+#        C5_2 = abs(self.createConvolutionLayerUsingParams(S4_2, filter_shapes[2], (batchsize, self.sizes[1], 16, 16),self.params[4]))
+#        S6_2 = self.createPoolingLayerUsingParams(C5_2, (2, 2),self.params[5])
+#        C7_2 = abs(self.createConvolutionLayerUsingParams(S6_2, filter_shapes[3], (batchsize, self.sizes[2], 6, 6),self.params[6]))
 
 
-        C1_2 = abs(self.createConvolutionLayerUsingParams(self.inputTensor2, filter_shapes[0], (batchsize,1,72,72),self.params[0]))
-        S2_2 = self.createPoolingLayerUsingParams(C1_2, (2, 2), self.params[1])
-        C3_2 = abs(self.createConvolutionLayerUsingParams(S2_2, filter_shapes[1], (batchsize, self.sizes[0], 35, 35),self.params[2]))
-        S4_2 = self.createPoolingLayerUsingParams(C3_2, (2, 2),self.params[3])
-        C5_2 = abs(self.createConvolutionLayerUsingParams(S4_2, filter_shapes[2], (batchsize, self.sizes[1], 16, 16),self.params[4]))
-        S6_2 = self.createPoolingLayerUsingParams(C5_2, (2, 2),self.params[5])
-        C7_2 = abs(self.createConvolutionLayerUsingParams(S6_2, filter_shapes[3], (batchsize, self.sizes[2], 6, 6),self.params[6]))
-
-
-        output_layer = [self.createSigmoidLayer(C7_1.flatten(2), self.sizes[-1], 1),
-                        self.createSigmoidLayerUsingParams(C7_2.flatten(2), self.params[-2],self.params[-1])]
+        output_layer = [self.createSigmoidLayer(nnet1[-1].flatten(2), self.sizes[-1], 1),
+                        self.createSigmoidLayerUsingParams(nnet2[-1].flatten(2), self.params[-2],self.params[-1])]
 
         cost_FirstPhase = self.training_loss(output_layer[0], targets)
 
-        cost_SecondPhase = self.similarLossFunction([C7_1,C7_2])
+        cost_SecondPhase = self.similarLossFunction([nnet1[-1],nnet2[-1]])
 
-        cost_ThirdPhase = self.dissimilarLossFunction([C7_1,C7_2])
+        cost_ThirdPhase = self.dissimilarLossFunction([nnet1[-1],nnet2[-1]])
 
 
 
@@ -189,34 +213,53 @@ class TemporalNeuralNetwork(Learner):
                                image_shape=image_shape
         )
 
-        #b_values = np.zeros((filter_shape[0],), dtype=T.config.floatX)
-        #b = T.shared(b_values)
-        #conv_out = conv_out + b.dimshuffle('x', 0, 'x', 'x')
+        b_values = np.zeros((filter_shape[0],), dtype=T.config.floatX)
+        b = T.shared(b_values)
+        conv_out = conv_out + b.dimshuffle('x', 0, 'x', 'x')
 
         self.params.append(W)
-        #self.params.append(b)
+        self.params.append(b)
         return conv_out
 
-    def createConvolutionLayerUsingParams(self, input, filter_shape, image_shape, W):
-        return conv.conv2d(input=input,
+    def createConvolutionLayerUsingParams(self, input, filter_shape, image_shape, W, b):
+        conv_out = conv.conv2d(input=input,
                            filters=W,
                            filter_shape=filter_shape,
                            image_shape=image_shape
         )
+        return conv_out + b.dimshuffle('x', 0, 'x', 'x')
 
 
     def createPoolingLayer(self, input, poolsize, prev_filter_shape):
+        # there are "num input feature maps * filter height * filter width"
+        # inputs to each hidden unit
+        fan_in = np.prod(prev_filter_shape[1:])
+        # each unit in the lower layer receives a gradient from:
+        # "num output feature maps * filter height * filter width" /
+        #   pooling size
+        fan_out = (prev_filter_shape[0] * np.prod(prev_filter_shape[2:]))
+        # initialize weights with random weights
+        W_bound = np.sqrt(6. / (fan_in + fan_out))
+        W = T.shared(
+            np.asarray(
+                self.rng.uniform(low=-W_bound, high=W_bound, size=prev_filter_shape),
+                dtype=T.config.floatX
+            ),
+            borrow=True
+        )
+
         pool_out = downsample.max_pool_2d(input=input, ds=poolsize, ignore_border=True)
 
         b_values = np.zeros((prev_filter_shape[0],), dtype=T.config.floatX)
         b = T.shared(value=b_values, borrow=True)
+        self.params.append(W)
         self.params.append(b)
 
-        return T.tensor.tanh(pool_out + b.dimshuffle('x', 0, 'x', 'x'))
+        return T.tensor.tanh(T.dot(W,pool_out) + b.dimshuffle('x', 0, 'x', 'x'))
 
-    def createPoolingLayerUsingParams(self, input, poolsize, b):
+    def createPoolingLayerUsingParams(self, input, poolsize, W, b):
         pool_out = downsample.max_pool_2d(input=input, ds=poolsize, ignore_border=True)
-        return T.tensor.tanh(pool_out + b.dimshuffle('x', 0, 'x', 'x'))
+        return T.tensor.tanh(T.dot(W,pool_out) + b.dimshuffle('x', 0, 'x', 'x'))
 
     def createSigmoidLayer(self, input, nkerns, img_size):
         W = T.shared(
@@ -263,9 +306,9 @@ class TemporalNeuralNetwork(Learner):
             for input, target in trainset:
                 consecutivesFrames = trainset.data.getConsecutivesFrames(batchsize)
                 nonConsecutivesFrames = trainset.data.getNonConsecutivesFrames(batchsize)
-                scoreFirst = self.train_batch[self.FIRST_PHASE](input.reshape(batchsize,1,72,72), target)
-                scoreSecond = self.train_batch[self.SECOND_PHASE](consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
-                scoreThird = self.train_batch[self.THIRD_PHASE](nonConsecutivesFrames[0].reshape(batchsize,1,72,72),nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
+                self.train_batch[self.FIRST_PHASE](input.reshape(batchsize,1,72,72), target)
+                self.train_batch[self.SECOND_PHASE](consecutivesFrames[0].reshape(batchsize,1,72,72), consecutivesFrames[1].reshape(batchsize,1,72,72))
+                self.train_batch[self.THIRD_PHASE](nonConsecutivesFrames[0].reshape(batchsize,1,72,72),nonConsecutivesFrames[1].reshape(batchsize,1,72,72))
                 self.n_updates += 1
         self.epoch = self.n_epochs
 
@@ -307,6 +350,10 @@ class TemporalNeuralNetwork(Learner):
         #    t += 1
 
         return outputs
+
+
+    def forget(self):
+        pass
 
     def test(self,dataset):
         """
