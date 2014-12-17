@@ -55,13 +55,13 @@ Olivier Gagnon \And Bernard Lebel
 \section{Introduction}
 
 % Describe the problem or application that your project is concerned with.
-Object recognition is a classification problem in which we try to identify an object in a picture using classification. For this purpose, several database can be used to help the creation of algorithms to solve this problem. However, these database are very expensive. To alleviate this problem, algorithms can use non-labeled data to extract information useful to this problem.
+Object recognition is a classification problem where a system attempts to identify an object in a picture using classification's algorithms. Litterature shows that a common approach to this type of problems is to rely on machine learning techniques. Those techniques however tend to require a labeled dataset (i.e. a database of items with an associated classification label) onto which the system has to be trained. As extensive datasets can be costly to acquire, unsupervised machine learning methods using non-labeled data can be used to alleviate this problem. This broadens the amount of possible inputs without requiring codification by a human.
 
-One of the information that can prove useful is temporal coherence. For example, in a video sequence, it is likely that two adjacent frames contains the same objects rather than radically different ones. This is true in many other domains were data is of sequential nature.
+One of the information that can prove useful is temporal coherence. Temporal coherence is a principle that states that in a video sequence, it is likely that two adjacent frames contains the same objects rather than radically different ones. Interestingly, this statement can also be considered true in other field of studies where data is of sequential nature (e.g. biological sensor inputs).
 
 The method chosen to solve this problem is to use temporal coherence as a regularizer to exploit this information in unlabeled temporal data.\cite{?}
 %Mention the method you have chosen and why it solves your problem or is a good choice for your application.
-This method is a good choice for our problem, because it extracts information from a temporal database, but can use it to make object categorization in context were the inputs are non-sequential. 
+This method is a good choice for our problem, because it accounts for the likelihood that two consequent frames in a video contains the same object and that two distant frames are likely not. Leveraging this approach, it is stipulated that a neural network can be trained using standard labeled inputs, sequential non-labeled inputs and non-sequential non-labeled inputs altogether to achieve an accurate object categorization in context where inputs are non-sequential. 
 
 \section{Description}
 \subsection{COIL100 dataset}
@@ -70,7 +70,7 @@ This method is a good choice for our problem, because it extracts information fr
 %    – Description and notation for the inputs.
 %    – Description and notation for the targets.
 
-The dataset used in this project is the COIL100 dataset\cite{?}. This dataset presents the pictures of 100 objects which are placed on a turntable and rotated by increments of 5 degrees by picture. It contains 72 images by object, for a total of 7200 pictures. The input consists of rgb images in the gif format and the target consists of an integer from 1 to 100.
+The dataset used in this project is the COIL100 dataset\cite{?}. This dataset presents the pictures of 100 objects placed on a turntable and rotated by increments of 5 degrees by picture. It contains 72 images by object, for a total of 7200 pictures. The input consists of RGB images in the Gif format and the target is an integer from 1 to 100.
 
 \begin{figure}[h]
 \label{fig:coil100}
@@ -93,7 +93,7 @@ The dataset used in this project is the COIL100 dataset\cite{?}. This dataset pr
 %    – Type of learning (supervised / unsupervised, discriminative / generative).
 %    – Intuition behind the training objective your algorithm optimizes.
 %    – Intuition behind the architecture of the neural network.
-The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal-neural-net trained as a classifier on the images.\cite{?} A regularizer is then applied to ensure that the convolutionnal-neural-net doesn't act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
+The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal neural network (CNN) trained as a classifier on the dataset COIL-100~\cite{?}. A regularizer is then applied to ensure that the CNN does not act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
 
 %– Provide a detailed description of your algorithm which implements these principles. Your description should allow a person to reimplement your method from your description. Here are some things that you could discuss :
 %    – Objective optimized during training. X
@@ -105,7 +105,7 @@ The algorithm implemented in this project is a semi-supervised algorithm. The ba
 %    - Description of hyper-parameters.
 %    – Pseudocodes of your algorithm.
 \subsection{Details}
-The convolutionnal-neural-net\cite{?} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. Convolutionnal-neural-networks are a good choice for visual recognition tasks because they can take the 2D topology of the data into account and because their structure limits the number of parameters to be learned.
+The CNN~\cite{?} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. CNN are a good choice for visual recognition tasks because they can take the 2D topology of the data into account and because their structure limits the number of parameters to be learned. Additionally, the filter during the convolutions phases create a system that resists well to translations of a target in a picture. 
 \begin{figure}[h]
 \label{fig:convolutionnal-neural-net}
 \includegraphics[width=\textwidth]{CNN.png}
