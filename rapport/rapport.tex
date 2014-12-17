@@ -6,6 +6,8 @@
 \usepackage{graphicx}
 \usepackage{amsfonts}
 \usepackage{mathtools}
+\usepackage{listings}
+\usepackage[numbers,square]{natbib}
 %\documentstyle[nips13submit_09,times,art10]{article} % For LaTeX 2.09
 
 \DeclarePairedDelimiter\abs{\lvert}{\rvert}%
@@ -59,7 +61,7 @@ Object recognition is a classification problem where a system attempts to identi
 
 One of the information that can prove useful is temporal coherence. Temporal coherence is a principle that states that in a video sequence, it is likely that two adjacent frames contains the same objects rather than radically different ones. Interestingly, this statement can also be considered true in other field of studies where data is of sequential nature (e.g. biological sensor inputs).
 
-The method chosen to solve this problem is to use temporal coherence as a regularizer to exploit this information in unlabeled temporal data.\cite{?}
+The method chosen to solve this problem is to use temporal coherence as a regularizer to exploit this information in unlabeled temporal data.\cite{Mobahi2009}
 %Mention the method you have chosen and why it solves your problem or is a good choice for your application.
 This method is a good choice for our problem, because it accounts for the likelihood that two consequent frames in a video contains the same object and that two distant frames are likely not. Leveraging this approach, it is stipulated that a neural network can be trained using standard labeled inputs, sequential non-labeled inputs and non-sequential non-labeled inputs altogether to achieve an accurate object categorization in context where inputs are non-sequential. 
 
@@ -70,7 +72,7 @@ This method is a good choice for our problem, because it accounts for the likeli
 %    – Description and notation for the inputs.
 %    – Description and notation for the targets.
 
-The dataset used in this project is the COIL100 dataset\cite{?}. This dataset presents the pictures of 100 objects placed on a turntable and rotated by increments of 5 degrees by picture. It contains 72 images by object, for a total of 7200 pictures. The input consists of RGB images in the Gif format and the target is an integer from 1 to 100.
+The dataset used in this project is the COIL100 dataset\cite{Mobahi2009}. This dataset presents the pictures of 100 objects placed on a turntable and rotated by increments of 5 degrees by picture. It contains 72 images by object, for a total of 7200 pictures. The input consists of RGB images in the Gif format and the target is an integer from 1 to 100.
 
 \begin{figure}[h]
 \label{fig:coil100}
@@ -93,19 +95,19 @@ The dataset used in this project is the COIL100 dataset\cite{?}. This dataset pr
 %    – Type of learning (supervised / unsupervised, discriminative / generative).
 %    – Intuition behind the training objective your algorithm optimizes.
 %    – Intuition behind the architecture of the neural network.
-The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal neural network (CNN) trained as a classifier on the dataset COIL-100~\cite{?}. A regularizer is then applied to ensure that the CNN does not act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
+The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal neural network (CNN) trained as a classifier on the dataset COIL-100~\cite{Mobahi2009}. A regularizer is then applied to ensure that the CNN does not act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
 
 %– Provide a detailed description of your algorithm which implements these principles. Your description should allow a person to reimplement your method from your description. Here are some things that you could discuss :
 %    – Objective optimized during training. X
 %    – Optimization technique used. X
-%    – Description of gradients. 1/2X
+%TODO    – Description of gradients. 1/2X
 %    – Architecture of the neural network. X
-%    – Training procedure (one phase of training or training in several phases).
-%    – Description of the use of the network to make a prediction on new data.
-%    - Description of hyper-parameters.
-%    – Pseudocodes of your algorithm.
+%TODO  – Training procedure (one phase of training or training in several phases).
+%TODO    – Description of the use of the network to make a prediction on new data.
+%TODO    - Description of hyper-parameters.
+%TODO    – Pseudocodes of your algorithm.
 \subsection{Details}
-The CNN~\cite{?} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. CNN are a good choice for visual recognition tasks because they can take the 2D topology of the data into account and because their structure limits the number of parameters to be learned. Additionally, the filter during the convolutions phases create a system that resists well to translations of a target in a picture. 
+The CNN~\cite{Mobahi2009} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. CNN are a good choice for visual recognition tasks because they can take the 2D topology of the data into account and because their structure limits the number of parameters to be learned. Additionally, the filter during the convolutions phases create a system that resists well to translations of a target in a picture. 
 \begin{figure}[h]
 \label{fig:convolutionnal-neural-net}
 \includegraphics[width=\textwidth]{CNN.png}
@@ -132,7 +134,7 @@ Finally, a last layer is a fully-connected layer which outputs one value per cla
 
 \subsection{Optimization}
 
-Three cost functions are optimized during training. In each case, stochastic gradients descent is used~\cite{?} .
+Three cost functions are optimized during training. In each case, stochastic gradients descent is used~\cite{Mobahi2009} .
 
 The first cost function is the negative log-likelihood $L(\mathbf{\theta}) = \sum_{n=1}^N L(\mathbf{\theta},\mathbf{x}_n, y_n)$.
 
@@ -143,7 +145,7 @@ The gradient descent update is as follow:
 \end{equation}
 where $\lambda$ is a learning rate.
 
-The second and third lost functions are presented in \cite{?}.
+The second and third lost functions are presented in~\cite{Mobahi2009}.
 
 Considering two images $\mathbf{x_1}$ and $\mathbf{x_2}$ and their respective representation in the $l^{th}$ layer $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$, we enforce $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$ to be close when the two images are consecutive frames in a video.
 
@@ -158,10 +160,26 @@ L_{coh2}(\theta, \mathbf{x_1}, \mathbf{x_2}) = \max \left(0, \delta - \norm{z_\t
 \end{equation}
 where $\delta$ is a margin that could be chosen as an hyperparameter. However, just as in~\cite{}, the value of $\delta$ is fixed to 1.
 
+\subsection{Practical Algorithm}
+The algorithm used in this study is presented at~\ref{lst:algo}.
+
+\begin{quote}
+\label{lst:algo}
+Test this is a test
+\end{quote}
+
+
 \section{Results}
 %TODO – Describe your experimental protocol (proportions used to divide the data into training, validation and test sets, data preprocessing, etc.).
 %TODO – Describe your procedure for selecting hyper-parameters.
 %TODO – Present and analyze the results for different hyper-parameters on the validation and training sets.
 %TODO – Present any results that validate the correctness of your implementation.
 %TODO – Present the results of your algorithm on the test set and make a comparison with an alternative, simple baseline.
+
+
+\bibliographystyle{abbrvnat}
+%\DeclareRobustCommand{\VAN}[3]{#3}
+%\setlength{\bibsep}{1mm}
+\bibliography{biblio}
+
 \end{document}
