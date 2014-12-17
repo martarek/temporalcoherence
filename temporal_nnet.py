@@ -167,10 +167,10 @@ class TemporalNeuralNetwork(Learner):
 
 
     def similarLossFunction(self, layersOfInterest,batchSize, layerSizes):
-        return (layersOfInterest[0] - layersOfInterest[1]).norm(1) /batchSize /layerSizes
+        return (layersOfInterest[0] - layersOfInterest[1]).norm(1) /layerSizes
 
     def dissimilarLossFunction(self, layersOfInterest, batchSize, layerSizes):
-        return T.tensor.max((0, self.deltaDistance - (layersOfInterest[0] - layersOfInterest[1]).norm(1) / batchSize / layerSizes))
+        return T.tensor.max((0, self.deltaDistance - ((layersOfInterest[0] - layersOfInterest[1]).norm(1) / layerSizes)))#/ batchSize / layerSizes))
 
     def update_param(self, param_i, grad_i, n_updates, lr):
         return param_i, param_i - grad_i * (lr / (1. + (n_updates * self.dc)))
