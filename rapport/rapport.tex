@@ -8,6 +8,9 @@
 \usepackage{mathtools}
 \usepackage{listings}
 \usepackage[numbers,square]{natbib}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
 %\documentstyle[nips13submit_09,times,art10]{article} % For LaTeX 2.09
 
 \DeclarePairedDelimiter\abs{\lvert}{\rvert}%
@@ -162,23 +165,21 @@ $\delta$ is a margin defined as an hyper-parameter. However, just as in~\cite{Mo
 \subsection{Practical Algorithm}
 The algorithm used in this study is presented at~\ref{lst:algo} as presented in~\citep{Mobahi2009}.
 
-\begin{quote}
+\begin{algorithm}
+\caption{Temporal coherence}
 \label{lst:algo}
-\begin{itemize}
-\item  \textbf{Inputs:} Labeled data ($x_n$, $y_n$), $n = 1, ...N$, unlabeled video data $x_n$,$n=N+1, ... N+U$ inputs are created from 
-\item \textbf{while} Stopping criterion is not met \textbf{do}
-\begin{enumerate}
-\item Get a random labeled item ($x_n$,$y_n$)
-\item Do a gradient step to minimize $L(\theta,x_n,y_n)$
-\item Pick randomly two consecutive images ($x_m$,$x_n$) in the \textit{unlabeled} dataset (e.g video).
-\item Do a gradient step to minimize $L_{coh1}(\theta,x_m,y_n)$
-\item Pick randomly two images ($x_m$,$x_n$) in the \textit{unlabeled} dataset (e.g video).
-\item Do a gradient step to minimize $L_{coh2}(\theta,x_m,y_n)$
-\end{enumerate}
-
-\end{itemize}
-\end{quote}
-
+\begin{algorithmic}
+\State \textbf{Inputs:} Labeled data ($x_n$, $y_n$), $n = 1, ...N$, unlabeled video data $x_n$,$n=N+1, ... N+U$ inputs are created from 
+\While{Stopping criterion is not met}
+\State Get a random labeled item ($x_n$,$y_n$)
+\State Do a gradient step to minimize $L(\theta,x_n,y_n)$
+\State Pick randomly two consecutive images ($x_m$,$x_n$) in the \textit{unlabeled} dataset (e.g video).
+\State Do a gradient step to minimize $L_{coh1}(\theta,x_m,y_n)$
+\State Pick randomly two images ($x_m$,$x_n$) in the \textit{unlabeled} dataset (e.g video).
+\State Do a gradient step to minimize $L_{coh2}(\theta,x_m,y_n)$
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
 
 \section{Results}
 %TODO – Describe your experimental protocol (proportions used to divide the data into training, validation and test sets, data preprocessing, etc.).
