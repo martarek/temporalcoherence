@@ -69,6 +69,56 @@ The figure~\ref{fig:results_bestrun} presents the training and validation error 
 \includegraphics[scale=0.35]{result2.png} 
 \caption{Training and validation error of the training procedure with the best validation error.}
 \end{figure}
-%TODO – Present the results of your algorithm on the test set and make a comparison with an alternative, simple baseline.
 
 \subsection{Comparison}
+%TODO – Present the results of your algorithm on the test set and make a comparison with an alternative, simple baseline.
+
+To show the performance of the algorithm, we compared its performance against a convolutionnal-neural-network without the temporal coherence regularisation. The results for differents set of hyper-parameters are shown in table~\ref{tab:cnn}. We can see that the best value in validation in our method and the traditionnal method are roughly the same. However, the size of the neural network needed to achieve these performance are much smaller with temporal coherence. We can also see that there is more set of hyper-parameters that achieve interesting performance with our method than with the traditionnal method.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[f]
+\begin{tabular}{@{}rrrrrrrrr@{}}
+\toprule
+\multicolumn{1}{l}{lr} & \multicolumn{1}{l}{sizes} & \multicolumn{1}{l}{best\_it} & \multicolumn{1}{l}{train1} & \multicolumn{1}{l}{valid1} & \multicolumn{1}{l}{test1} & \multicolumn{1}{l}{train2} & \multicolumn{1}{l}{valid2} & \multicolumn{1}{l}{test2} \\ \midrule
+0.01 & {[}15,60,240,1700{]} & 9 & 0.833 & 0.867 & 0.851 & 3.383 & 3.386 & 3.385 \\
+0.01 & {[}2,8,32,300{]} & 1 & 0.942 & 0.967 & 0.962 & 3.401 & 3.401 & 3.401 \\
+0.01 & {[}200,100,50,25{]} & 1 & 0.892 & 0.908 & 0.908 & 3.401 & 3.401 & 3.401 \\
+0.01 & {[}4,16,64,600{]} & 1 & 0.933 & 0.933 & 0.933 & 3.401 & 3.401 & 3.401 \\
+0.01 & {[}8,32,128,1000{]} & 28 & 0.817 & 0.833 & 0.853 & 3.346 & 3.353 & 3.351 \\
+0.03 & {[}100,200,400,1000{]} & 33 & 0.250 & 0.417 & 0.383 & 0.783 & 1.743 & 1.355 \\
+0.03 & {[}15,60,240,1700{]} & 27 & 0.408 & 0.483 & 0.485 & 1.466 & 1.877 & 1.711 \\
+0.03 & {[}2,8,32,300{]} & 5 & 0.925 & 0.958 & 0.948 & 3.395 & 3.396 & 3.396 \\
+0.03 & {[}200,100,50,25{]} & 10 & 0.808 & 0.875 & 0.851 & 3.388 & 3.389 & 3.389 \\
+0.03 & {[}4,16,64,600{]} & 4 & 0.933 & 0.933 & 0.933 & 3.394 & 3.395 & 3.395 \\
+0.03 & {[}50,100,200,500{]} & 37 & 0.192 & 0.433 & 0.353 & 0.772 & 1.562 & 1.238 \\
+0.03 & {[}8,32,128,1000{]} & 10 & 0.750 & 0.783 & 0.784 & 3.352 & 3.359 & 3.357 \\
+\textbf{0.05} & \textbf{{[}100,200,400,1000{]}} & \textbf{42} & \textbf{0.017} & \textbf{0.275} & \textbf{0.163} & \textbf{0.070} & \textbf{1.249} & \textbf{0.755} \\
+0.05 & {[}100,200,400,1000{]} & 35 & 0.000 & 0.325 & 0.186 & 0.002 & 1.683 & 0.942 \\
+0.05 & {[}15,60,240,1700{]} & 8 & 0.725 & 0.717 & 0.719 & 3.218 & 3.228 & 3.225 \\
+0.05 & {[}2,8,32,300{]} & 24 & 0.642 & 0.617 & 0.643 & 2.527 & 2.600 & 2.574 \\
+0.05 & {[}200,100,75,50{]} & 19 & 0.483 & 0.550 & 0.530 & 1.357 & 1.914 & 1.669 \\
+0.05 & {[}200,100,75,50{]} & 14 & 0.717 & 0.692 & 0.718 & 3.011 & 3.015 & 3.015 \\
+0.05 & {[}4,16,64,600{]} & 8 & 0.842 & 0.883 & 0.874 & 3.367 & 3.371 & 3.370 \\
+0.05 & {[}5,20,80,400{]} & 28 & 0.275 & 0.492 & 0.421 & 0.913 & 1.834 & 1.463 \\
+0.05 & {[}5,20,80,400{]} & 7 & 0.850 & 0.892 & 0.873 & 3.376 & 3.379 & 3.379 \\
+0.05 & {[}8,32,128,1000{]} & 12 & 0.708 & 0.725 & 0.722 & 3.073 & 3.086 & 3.081 \\
+0.07 & {[}100,200,400,1000{]} & 11 & 0.675 & 0.675 & 0.690 & 2.690 & 2.791 & 2.757 \\
+0.07 & {[}15,60,240,1700{]} & 6 & 0.658 & 0.692 & 0.686 & 3.246 & 3.255 & 3.252 \\
+0.07 & {[}2,8,32,300{]} & 16 & 0.717 & 0.725 & 0.738 & 2.766 & 2.810 & 2.793 \\
+0.07 & {[}200,100,50,25{]} & 3 & 0.825 & 0.850 & 0.860 & 3.396 & 3.397 & 3.397 \\
+0.07 & {[}4,16,64,600{]} & 25 & 0.492 & 0.583 & 0.593 & 1.754 & 2.170 & 1.996 \\
+0.07 & {[}50,100,200,500{]} & 36 & 0.025 & 0.292 & 0.183 & 0.211 & 1.350 & 0.878 \\
+0.07 & {[}8,32,128,1000{]} & 9 & 0.683 & 0.683 & 0.687 & 3.065 & 3.078 & 3.073 \\
+0.09 & {[}15,60,240,1700{]} & 7 & 0.667 & 0.683 & 0.691 & 2.871 & 2.879 & 2.876 \\
+0.09 & {[}2,8,32,300{]} & 12 & 0.767 & 0.800 & 0.794 & 3.093 & 3.105 & 3.103 \\
+0.09 & {[}200,100,50,25{]} & 3 & 0.800 & 0.858 & 0.844 & 3.395 & 3.396 & 3.396 \\
+0.09 & {[}4,16,64,600{]} & 4 & 0.750 & 0.800 & 0.780 & 3.380 & 3.384 & 3.383 \\
+0.09 & {[}8,32,128,1000{]} & 3 & 0.642 & 0.750 & 0.713 & 3.378 & 3.383 & 3.381 \\ \bottomrule
+\end{tabular}
+\caption{Results for the normal convolutionnal-neural network}
+\label{tab:cnn}
+\end{table}
+
+
+
