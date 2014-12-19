@@ -96,4 +96,29 @@ target/
 # Temporary data
 .ipynb_checkpoints/
 
+*.aux
+*.glo
+*.idx
+*.log
+*.toc
+*.ist
+*.acn
+*.acr
+*.alg
+*.bbl
+*.blg
+*.dvi
+*.glg
+*.gls
+*.ilg
+*.ind
+*.lof
+*.lot
+*.maf
+*.mtc
+*.mtc1
+*.out
+rapport.synctex.gz 
+rapport.pdf
+rapport/rapport.synctex.gz
 
