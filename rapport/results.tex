@@ -4,6 +4,71 @@ The COIL100 dataset contains 100 different object. From this dataset, 30 objects
 
 Since the article mentioned the pictures were 72X72 pixels, the images from the dataset were resized to this format prior to any experiment. The images were converted into grayscale format. The intra-image mean was substracted for each image. Each pixel was then divided by the intra-image standard deviation.
 %TODO – Describe your procedure for selecting hyper-parameters.
-%TODO – Present and analyze the results for different hyper-parameters on the validation and training sets.
-%TODO – Present any results that validate the correctness of your implementation.
+%DONE – Present and analyze the results for different hyper-parameters on the validation and training sets.
+
+\subsection{Results for different hyper-parameters}
+
+The results for different hyper-parameters are presented in the table~\ref{tab:results}. They were all executed with a look-ahead of 10 epochs. It is interesting to note that the validation dataset is harder than the test dataset for most of the configurations. This is probably due to the fact that the validation angles were chosen to be the fartest from the training angles.
+
+\begin{table}[f]
+\label{tab:results}
+\small
+\begin{tabular}{@{}rrrrrrrrrrr@{}}
+\toprule
+\multicolumn{1}{l}{lr1} & \multicolumn{1}{l}{lr2} & \multicolumn{1}{l}{dc} & \multicolumn{1}{l}{sizes} & \multicolumn{1}{l}{best\_it} & \multicolumn{1}{l}{train1} & \multicolumn{1}{l}{valid1} & \multicolumn{1}{l}{test1} & \multicolumn{1}{l}{train2} & \multicolumn{1}{l}{valid2} & \multicolumn{1}{l}{test2} \\ \midrule
+0.01 & 0.05 & 0.00E+00 & {[}12,48,176,672{]} & 73 & 0.058 & 0.358 & 0.233 & 0.278 & 1.254 & 0.859 \\
+0.01 & 0.07 & 0.00E+00 & {[}12,48,176,672{]} & 15 & 0.858 & 0.875 & 0.878 & 3.343 & 3.349 & 3.348 \\
+0.01 & 0.08 & 0.00E+00 & {[}12,48,176,672{]} & 14 & 0.875 & 0.875 & 0.880 & 3.351 & 3.357 & 3.355 \\
+0.01 & 0.1 & 0.00E+00 & {[}12,48,176,672{]} & 72 & 0.058 & 0.367 & 0.239 & 0.307 & 1.267 & 0.885 \\
+0.015 & 0.05 & 0.00E+00 & {[}12,48,176,672{]} & 53 & 0.083 & 0.358 & 0.241 & 0.281 & 1.296 & 0.883 \\
+0.015 & 0.07 & 0.00E+00 & {[}12,48,176,672{]} & 8 & 0.858 & 0.875 & 0.871 & 3.367 & 3.371 & 3.370 \\
+0.015 & 0.08 & 0.00E+00 & {[}12,48,176,672{]} & 52 & 0.075 & 0.350 & 0.240 & 0.341 & 1.261 & 0.900 \\
+0.015 & 0.1 & 0.00E+00 & {[}12,48,176,672{]} & 7 & 0.858 & 0.883 & 0.870 & 3.373 & 3.377 & 3.376 \\
+0.02 & 0.05 & 0.00E+00 & {[}12,48,176,672{]} & 56 & 0.017 & 0.317 & 0.171 & 0.065 & 1.185 & 0.681 \\
+0.02 & 0.1 & 0.00E+00 & {[}12,48,176,672{]} & 56 & 0.017 & 0.333 & 0.184 & 0.059 & 1.231 & 0.730 \\
+0.025 & 0.01 & 0.00E+00 & {[}10,40,160,640{]} & 52 & 0.025 & 0.325 & 0.184 & 0.103 & 1.356 & 0.787 \\
+0.025 & 0.01 & 1.00E-07 & {[}10,40,160,640{]} & 53 & 0.017 & 0.325 & 0.184 & 0.082 & 1.301 & 0.760 \\
+0.025 & 0.05 & 0.00E+00 & {[}10,40,160,640{]} & 57 & 0.008 & 0.317 & 0.179 & 0.039 & 1.280 & 0.716 \\
+0.025 & 0.05 & 1.00E-07 & {[}10,40,160,640{]} & 42 & 0.050 & 0.333 & 0.201 & 0.250 & 1.412 & 0.900 \\
+0.025 & 0.08 & 0.00E+00 & {[}10,40,160,640{]} & 44 & 0.042 & 0.317 & 0.190 & 0.202 & 1.345 & 0.850 \\
+0.025 & 0.08 & 1.00E-07 & {[}10,40,160,640{]} & 51 & 0.025 & 0.333 & 0.177 & 0.112 & 1.250 & 0.744 \\
+0.025 & 0.2 & 0.00E+00 & {[}10,40,160,640{]} & 54 & 0.017 & 0.325 & 0.189 & 0.065 & 1.242 & 0.734 \\
+0.025 & 0.2 & 1.00E-07 & {[}10,40,160,640{]} & 43 & 0.042 & 0.342 & 0.207 & 0.203 & 1.401 & 0.891 \\
+0.03 & 0.05 & 0.00E+00 & {[}12,48,176,672{]} & 44 & 0.025 & 0.300 & 0.173 & 0.116 & 1.229 & 0.742 \\
+0.03 & 0.07 & 0.00E+00 & {[}12,48,176,672{]} & 50 & 0.025 & 0.317 & 0.172 & 0.053 & 1.160 & 0.699 \\
+\textbf{0.03} & \textbf{0.08} & \textbf{0.00E+00} & \textbf{{[}12,48,176,672{]}} & \textbf{43} & \textbf{0.025} & \textbf{0.283} & \textbf{0.167} & \textbf{0.115} & \textbf{1.166} & \textbf{0.719} \\
+0.03 & 0.1 & 0.00E+00 & {[}12,48,176,672{]} & 47 & 0.033 & 0.283 & 0.171 & 0.109 & 1.127 & 0.714 \\
+0.05 & 0.01 & 0.00E+00 & {[}10,40,160,640{]} & 37 & 0.017 & 0.325 & 0.201 & 0.048 & 1.417 & 0.864 \\
+0.05 & 0.01 & 1.00E-07 & {[}10,40,160,640{]} & 2 & 0.692 & 0.717 & 0.727 & 3.389 & 3.391 & 3.390 \\
+0.05 & 0.05 & 0.00E+00 & {[}10,40,160,640{]} & 32 & 0.025 & 0.325 & 0.209 & 0.213 & 1.669 & 1.063 \\
+0.05 & 0.05 & 1.00E-07 & {[}10,40,160,640{]} & 41 & 0.000 & 0.308 & 0.164 & 0.011 & 1.234 & 0.713 \\
+0.05 & 0.08 & 0.00E+00 & {[}10,40,160,640{]} & 30 & 0.025 & 0.333 & 0.207 & 0.262 & 1.679 & 1.092 \\
+0.05 & 0.08 & 1.00E-07 & {[}10,40,160,640{]} & 2 & 0.700 & 0.717 & 0.729 & 3.389 & 3.391 & 3.390 \\
+0.05 & 0.2 & 0.00E+00 & {[}10,40,160,640{]} & 35 & 0.025 & 0.317 & 0.190 & 0.108 & 1.295 & 0.818 \\
+0.05 & 0.2 & 1.00E-07 & {[}10,40,160,640{]} & 40 & 0.025 & 0.317 & 0.193 & 0.130 & 1.361 & 0.896 \\
+0.09 & 0.01 & 0.00E+00 & {[}10,40,160,640{]} & 2 & 0.650 & 0.717 & 0.729 & 3.387 & 3.390 & 3.389 \\
+0.09 & 0.01 & 1.00E-07 & {[}10,40,160,640{]} & 2 & 0.633 & 0.717 & 0.724 & 3.387 & 3.390 & 3.389 \\
+0.09 & 0.05 & 0.00E+00 & {[}10,40,160,640{]} & 2 & 0.617 & 0.708 & 0.699 & 3.387 & 3.390 & 3.389 \\
+0.09 & 0.05 & 1.00E-07 & {[}10,40,160,640{]} & 11 & 0.633 & 0.633 & 0.638 & 2.454 & 2.538 & 2.503 \\
+0.09 & 0.08 & 0.00E+00 & {[}10,40,160,640{]} & 2 & 0.642 & 0.717 & 0.715 & 3.387 & 3.390 & 3.389 \\
+0.09 & 0.08 & 1.00E-07 & {[}10,40,160,640{]} & 2 & 0.642 & 0.733 & 0.722 & 3.386 & 3.390 & 3.389 \\
+0.09 & 0.2 & 0.00E+00 & {[}10,40,160,640{]} & 2 & 0.642 & 0.742 & 0.724 & 3.387 & 3.390 & 3.390 \\
+0.09 & 0.2 & 1.00E-07 & {[}10,40,160,640{]} & 2 & 0.617 & 0.733 & 0.716 & 3.387 & 3.390 & 3.389 \\ \bottomrule
+\end{tabular}
+\caption{Results for different hyper-parameters. The best value is in bold.}
+\end{table}
+
+\subsection{Results details}
+%DONE – Present any results that validate the correctness of your implementation.
+The figure~\ref{fig:results_bestrun} presents the training and validation error for the best hyper-parameters. It is interesting to note the small decrease of the classification error at the begining of the optimization. This pattern was repeated with almost every selection of hyper-parameters. We countered this effect by increasing the value of the look-ahead.
+
+
+\begin{figure}[htbf]
+\label{fig:results_bestrun}
+\includegraphics[scale=0.35]{result1.png} 
+\includegraphics[scale=0.35]{result2.png} 
+\caption{Training and validation error of the training procedure with the best validation error.}
+\end{figure}
 %TODO – Present the results of your algorithm on the test set and make a comparison with an alternative, simple baseline.
+
+\subsection{Comparison}
