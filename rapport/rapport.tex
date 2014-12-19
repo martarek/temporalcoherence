@@ -1,4 +1,4 @@
-\documentclass{article} % For LaTeX2e
+ \documentclass{article} % For LaTeX2e
 \usepackage{nips13submit_e,times}
 \usepackage{hyperref}
 \usepackage{url}
@@ -8,6 +8,9 @@
 \usepackage{mathtools}
 \usepackage{listings}
 \usepackage[numbers,square]{natbib}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
 %\documentstyle[nips13submit_09,times,art10]{article} % For LaTeX 2.09
 
 \DeclarePairedDelimiter\abs{\lvert}{\rvert}%
@@ -98,17 +101,17 @@ The dataset used in this project is the COIL100 dataset\cite{Mobahi2009}. This d
 The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal neural network (CNN) trained as a classifier on the dataset COIL-100~\cite{Mobahi2009}. A regularizer is then applied to ensure that the CNN does not act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
 
 %– Provide a detailed description of your algorithm which implements these principles. Your description should allow a person to reimplement your method from your description. Here are some things that you could discuss :
-%    – Objective optimized during training. X
-%    – Optimization technique used. X
+%DONE    – Objective optimized during training. X
+%DONE    – Optimization technique used. X
 %TODO    – Description of gradients. 1/2X
-%    – Architecture of the neural network. X
-%TODO  – Training procedure (one phase of training or training in several phases).
-%TODO    – Description of the use of the network to make a prediction on new data.
+%DONE    – Architecture of the neural network. X
+%DONE  – Training procedure (one phase of training or training in several phases). X
+%DONE    – Description of the use of the network to make a prediction on new data.
 %TODO    - Description of hyper-parameters.
-%TODO    – Pseudocodes of your algorithm.
+%DONE    – Pseudocodes of your algorithm.
 \subsection{Details}
 The CNN~\cite{Mobahi2009} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. CNN are a good choice for visual recognition tasks because they can take the 2D topology of the data into account and because their structure limits the number of parameters to be learned. Additionally, the filter during the convolutions phases create a system that resists well to translations of a target in a picture. 
-\begin{figure}[h]
+\begin{figure}[ht]
 \label{fig:convolutionnal-neural-net}
 \includegraphics[width=\textwidth]{CNN.png}
 \caption{A convolutionnal neural network}
@@ -120,8 +123,7 @@ The convolution layer $C_l$ in the architecture presented in figure~\ref{fig:con
 \begin{equation}
 z^l_p(i,j) = \abs{\sum_q \sum_{s=1}^{K^l} \sum_{t=1}^{K^l} w^l_{p,q,s,t}z_q^{l-1}(i-1+s, j-1+t)}
 \end{equation}
-%TODO Removed b^l_p + because how computations does not include it.
-Where $b^l_p$ and $w^l_{p,q,s,t}$ are learned by backpropagation. The absolute value is taken to create an invariance to the direction of the edges in the edge detection filters.
+Where $b^l_p$ and $w^l_{p,q,s,t}$ are optimized through the use of backpropagation. The absolute value is taken to create an invariance to the direction of the edges in the edge detection filters.
 
 The subsampling is done by taking the maximum value over non-overlapping windows.
 
@@ -129,6 +131,7 @@ A $\tanh()$ function is applied after the maxpooling layer to induce a non-linea
 
 Finally, a last layer is a fully-connected layer which outputs one value per class. A "softmax" layer is then added to compute a probability:
 \begin{equation}
+\label{eq:P_p}
 \tilde{P_p} = \frac{\exp (z_p^{l-1})}{\sum_q \exp (z_q^{l-1})}
 \end{equation}
 
@@ -153,24 +156,48 @@ Considering two images $\mathbf{x_1}$ and $\mathbf{x_2}$ and their respective re
 L_{coh1}(\theta, \mathbf{x_1}, \mathbf{x_2}) = \norm{z_\theta^l(\mathbf{x_1}) - z_\theta^l(\mathbf{x_2})}_1
 \end{equation}
 
-Finally, the third cost function is the opposite of the last one. That is, considering two images $\mathbf{x_1}$ and $\mathbf{x_2}$ and their respective representation in the $l^{th}$ layer $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$, we enforce $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$ to be different when the two images are randomly picked in the video under the assumption that they have an higher risk of representing different objects.
+Finally, the third cost function is the opposite of the last one. That is, considering two images $\mathbf{x_1}$ and $\mathbf{x_2}$ and their respective representation in the $l^{th}$ layer $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$, $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$ are enforced to be different when two images are randomly picked in the video under the assumption that they have an higher risk of representing different objects.
 
 \begin{equation}
 L_{coh2}(\theta, \mathbf{x_1}, \mathbf{x_2}) = \max \left(0, \delta - \norm{z_\theta^l(\mathbf{x_1}) - z_\theta^l(\mathbf{x_2})}_1\right)
 \end{equation}
-where $\delta$ is a margin that could be chosen as an hyperparameter. However, just as in~\cite{}, the value of $\delta$ is fixed to 1.
+$\delta$ is a margin defined as an hyper-parameter. However, just as in~\cite{Mobahi2009}, the value of $\delta$ is fixed to 1.
 
 \subsection{Practical Algorithm}
-The algorithm used in this study is presented at~\ref{lst:algo}.
+The algorithm used in this study is presented at~\ref{lst:algo} as presented in~\citep{Mobahi2009}. The unsupervised and supervised part of the procedure is done once for every gradient step in alternance.
 
-\begin{quote}
+\begin{algorithm}
+\caption{Temporal coherence}
 \label{lst:algo}
-Test this is a test
-\end{quote}
+\begin{algorithmic}
+\State \textbf{Inputs:} Labeled data ($x_n$, $y_n$), $n = 1, ...N$, unlabeled video data $x_n$,$n=N+1, ... N+U$ inputs are created from 
+\While{Stopping criterion is not met}
+\State Get a random labeled item ($x_n$,$y_n$)
+\State Do a gradient step to minimize $L(\theta,x_n,y_n)$
+\State Pick randomly two consecutive images ($x_m$,$x_n$) in the \textit{unlabeled} dataset (e.g video).
+\State Do a gradient step to minimize $L_{coh1}(\theta,x_m,y_n)$
+\State Pick randomly two images ($x_m$,$x_n$) in the \textit{unlabeled} dataset (e.g video).
+\State Do a gradient step to minimize $L_{coh2}(\theta,x_m,y_n)$
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
 
+\subsection{Prediction}
+
+The prediction is done in the conventionnal way. A forward propagation of the preprocessed input is done. The predicted class is given by the equation~\ref{eq:argmax}.
+
+\begin{equation}
+\label{eq:argmax}
+\mathbf{y} = argmax\left(\tilde{P_p} \right)
+\end{equation}
+
+where $\tilde{P_p}$ is given by the equation~\ref{eq:P_p}.
 
 \section{Results}
-%TODO – Describe your experimental protocol (proportions used to divide the data into training, validation and test sets, data preprocessing, etc.).
+%DONE – Describe your experimental protocol (proportions used to divide the data into training, validation and test sets, data preprocessing, etc.).
+The COIL100 dataset contains 100 different object. From this dataset, 30 objects were selected randomly to be the labeled examples. The other 70 objects were used for the video dataset. The remaining 30 objects were separated into three datasets. For each object, 4 angles were used for the training (0, 90, 180, 270 degrees) and 4 angles were used for the validation (45, 135, 225, 315 degrees). The rest of the angles were used as test data.
+
+Since the article mentionned the pictures were 72X72 pixels, the images from the dataset were resized to this format prior to any experiment. The images were converted into grayscale format. The intra-image mean was substracted for each image. Each pixel was then divided by the intra-image standard deviation.
 %TODO – Describe your procedure for selecting hyper-parameters.
 %TODO – Present and analyze the results for different hyper-parameters on the validation and training sets.
 %TODO – Present any results that validate the correctness of your implementation.
