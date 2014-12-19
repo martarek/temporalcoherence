@@ -5,40 +5,6 @@ from theano.tensor.nnet import conv
 from theano.tensor.signal import downsample
 
 class TemporalNeuralNetwork(Learner):
-    """
-    Neural network for classification.
-
-    Option ``lr`` is the learning rate.
-
-    Option ``dc`` is the decrease constante for the learning rate.
-
-    Option ``sizes`` is the list of hidden layer sizes.
-
-    Option ``L2`` is the L2 regularization weight (weight decay).
-
-    Option ``L1`` is the L1 regularization weight (weight decay).
-
-    Option ``seed`` is the seed of the random number generator.
-
-    Option ``tanh`` is a boolean indicating whether to use the
-    hyperbolic tangent activation function (True) instead of the
-    sigmoid activation function (True).
-
-    Option ``parameter_initialization`` is a pair of lists,
-    giving the initializations for the biases (first list)
-    and the weight matrices (second list). If ``None``,
-    then a random initialization is used.
-
-    Option ``n_epochs`` number of training epochs.
-
-    **Required metadata:**
-
-    * ``'input_size'``: Size of the input.
-    * ``'targets'``: Set of possible targets.
-
-    """
-
-
     def __init__(self,
                  lrFirstPhase = 0.001,
                  lrSecondPhase=0.001,
