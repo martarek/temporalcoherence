@@ -202,6 +202,10 @@ where $\tilde{P_p}$ is given by the equation~\ref{eq:P_p}.
 
 \input{hyperparameters}
 
+\section{Implementation}
+
+The algorithms were implemented using the MLPython library\cite{mlpython} and the Theano library\cite{Bastien-Theano-2012}. MLPython was used to create the problem, manage the overall training, evaluation of the models. Theano was used to build the expression of the model and to obtain the gradients. The parameter updates of the stochastic gradient descent was also done with Theano.
+
 \input{results}
 
 
