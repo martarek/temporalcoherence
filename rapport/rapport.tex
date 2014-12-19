@@ -11,6 +11,11 @@
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage[noend]{algpseudocode}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
 %\documentstyle[nips13submit_09,times,art10]{article} % For LaTeX 2.09
 
 \DeclarePairedDelimiter\abs{\lvert}{\rvert}%
@@ -159,6 +164,7 @@ L_{coh1}(\theta, \mathbf{x_1}, \mathbf{x_2}) = \norm{z_\theta^l(\mathbf{x_1}) - 
 Finally, the third cost function is the opposite of the last one. That is, considering two images $\mathbf{x_1}$ and $\mathbf{x_2}$ and their respective representation in the $l^{th}$ layer $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$, $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$ are enforced to be different when two images are randomly picked in the video under the assumption that they have an higher risk of representing different objects.
 
 \begin{equation}
+\label{eq:delta}
 L_{coh2}(\theta, \mathbf{x_1}, \mathbf{x_2}) = \max \left(0, \delta - \norm{z_\theta^l(\mathbf{x_1}) - z_\theta^l(\mathbf{x_2})}_1\right)
 \end{equation}
 $\delta$ is a margin defined as an hyper-parameter. However, just as in~\cite{Mobahi2009}, the value of $\delta$ is fixed to 1.

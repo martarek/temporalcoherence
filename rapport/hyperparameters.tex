@@ -1,1 +1,60 @@
 \subsection{Hyper-parameters}
+\subsubsection{Description}
+The hyper-parameters used in the baseline CNN and his temporal coherence counterpart are presented in table~\ref{tab:hyperparams}.
+
+\begin{center}
+\begin{table}[ht]
+\label{tab:hyperparams}
+
+\begin{tabular}{c| L{9cm} }
+
+Hyper-parameters & Descritption \\ 
+\hline 
+LR1 & The learning rate associated with the standard CNN backpropagation stage. \\ 
+\hline 
+LR2 & The learning rate associated the backpropagation for two consecutives entries and for the one with two non-consecutives entries. \\ 
+\hline 
+DC & The Decrease constant. \\ 
+\hline 
+Sizes & The sizes of the 4 different layers of the neural network. \\ 
+\hline 
+Seed & The random seed used to pick randomly generated elements. \\ 
+\hline 
+Look-ahead Steps (LAS) & The amount of steps during training that the system will do after the condition $Valid_{error} > best~Valid_{error}$ \\ 
+\hline 
+Look-ahead Delay (LAD) & Number of steps before the look-ahead is enabled. \\ 
+\hline 
+Mini-batch Size & The size of the minibatch. \\ 
+\hline 
+$\delta$ margin  & $\delta$ is defined at~\ref{eq:delta}. \\
+\hline
+\end{tabular} 
+\caption{Description of hyper-parameters.}
+
+\end{table}
+\end{center}
+
+Some values were fixed for simplicity and are shown at table~\ref{tab:hyperparamsvals}. As displayed in this table, LR2 and $\delta$ are not applicable for the baseline CNN but are used for temporal coherence CNN (TC-CNN).
+
+
+\begin{table}[ht]
+\label{tab:hyperparamsvals}
+\begin{center}
+\begin{tabular}{c|c|c}
+
+Hyper-parameters & CNN & TC-CNN \\ 
+\hline 
+LR2 & N/A & Variable \\ 
+\hline 
+LAS & 5 & 10 \\ 
+\hline 
+LAD & 0 & 7 \\ 
+\hline 
+$\delta$ & N/A & 1 \\
+\hline
+\end{tabular} 
+\caption{Predefined values of hyper-parameters.}
+\end{center}
+\end{table}
+
+
