@@ -192,16 +192,7 @@ The prediction is done in the conventionnal way. A forward propagation of the pr
 \end{equation}
 
 where $\tilde{P_p}$ is given by the equation~\ref{eq:P_p}.
-
-\section{Results}
-%DONE – Describe your experimental protocol (proportions used to divide the data into training, validation and test sets, data preprocessing, etc.).
-The COIL100 dataset contains 100 different object. From this dataset, 30 objects were selected randomly to be the labeled examples. The other 70 objects were used for the video dataset. The remaining 30 objects were separated into three datasets. For each object, 4 angles were used for the training (0, 90, 180, 270 degrees) and 4 angles were used for the validation (45, 135, 225, 315 degrees). The rest of the angles were used as test data.
-
-Since the article mentionned the pictures were 72X72 pixels, the images from the dataset were resized to this format prior to any experiment. The images were converted into grayscale format. The intra-image mean was substracted for each image. Each pixel was then divided by the intra-image standard deviation.
-%TODO – Describe your procedure for selecting hyper-parameters.
-%TODO – Present and analyze the results for different hyper-parameters on the validation and training sets.
-%TODO – Present any results that validate the correctness of your implementation.
-%TODO – Present the results of your algorithm on the test set and make a comparison with an alternative, simple baseline.
+\input{results}
 
 
 \bibliographystyle{abbrvnat}
