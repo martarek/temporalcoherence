@@ -1,4 +1,4 @@
- \documentclass{article} % For LaTeX2e
+\documentclass{article} % For LaTeX2e
 \usepackage{nips13submit_e,times}
 \usepackage{hyperref}
 \usepackage{url}
@@ -33,7 +33,7 @@
 \makeatother
 
 
-\title{Projet}
+\title{Reimplementation of the article:\\ Deep Learning from Temporal Coherence in Video}
 
 
 \author{
@@ -59,7 +59,7 @@ Olivier Gagnon \And Bernard Lebel
 \maketitle
 
 \begin{abstract}
-
+We reimplemented the algorithm presented in the article \emph{Deep Learning from Temporal Coherence in Video} using the MLPython and Theano python library. We then tested it on the COIL100 dataset. We then present the result of a comparison of the performance of this method compared to a regular convolutionnal neural network.
 \end{abstract}
 
 \section{Introduction}
@@ -82,21 +82,31 @@ This method is a good choice for our problem, because it accounts for the likeli
 
 The dataset used in this project is the COIL100 dataset\cite{nayar1996real}. This dataset presents the pictures of 100 objects placed on a turntable and rotated by increments of 5 degrees by picture. It contains 72 images by object, for a total of 7200 pictures. The input consists of RGB images in the Gif format and the target is an integer from 1 to 100.
 
-\begin{figure}[h]
+In the following sections, the input image $i$, is noted $\mathbf{x_i}$ and the label $y_i$.
+
+\begin{figure}[htbp]%
+
+\parbox{\textwidth}{
+\centering
+\includegraphics[scale=1]{../../images/obj68__110.png}
+\includegraphics[scale=1]{../../images/obj23__110.png}
+\includegraphics[scale=1]{../../images/obj26__110.png}
+\includegraphics[scale=1]{../../images/obj13__110.png}
+\includegraphics[scale=1]{../../images/obj29__110.png}
+}
+\qquad
+\begin{minipage}{\textwidth}%
+\centering
+\includegraphics[scale=1]{../../images/obj68__225.png}
+\includegraphics[scale=1]{../../images/obj23__225.png}
+\includegraphics[scale=1]{../../images/obj26__225.png}
+\includegraphics[scale=1]{../../images/obj13__225.png}
+\includegraphics[scale=1]{../../images/obj29__225.png}
+\end{minipage}%
+\caption{Examples from the coil100 dataset.}
 \label{fig:coil100}
-\center
-\includegraphics[scale=1]{../../images/obj67__220.png} 
-\includegraphics[scale=1]{../../images/obj23__220.png} 
-\includegraphics[scale=1]{../../images/obj26__220.png} 
-\includegraphics[scale=1]{../../images/obj13__220.png} 
-\includegraphics[scale=1]{../../images/obj29__220.png}  
-\includegraphics[scale=1]{../../images/obj67__110.png} 
-\includegraphics[scale=1]{../../images/obj23__110.png} 
-\includegraphics[scale=1]{../../images/obj26__110.png} 
-\includegraphics[scale=1]{../../images/obj13__110.png} 
-\includegraphics[scale=1]{../../images/obj29__110.png}  
-\caption{Examples from the coil100 dataset}
 \end{figure}
+
 
 \subsection{Algorithm}
 %– Write a description of the general principles behind your approach. Here are some things that you could discuss :
@@ -108,7 +118,7 @@ The algorithm implemented in this project is a semi-supervised algorithm. The ba
 %– Provide a detailed description of your algorithm which implements these principles. Your description should allow a person to reimplement your method from your description. Here are some things that you could discuss :
 %DONE    – Objective optimized during training. X
 %DONE    – Optimization technique used. X
-%TODO    – Description of gradients. 1/2X
+%DONE    – Description of gradients. 1/2X
 %DONE    – Architecture of the neural network. X
 %DONE  – Training procedure (one phase of training or training in several phases). X
 %DONE    – Description of the use of the network to make a prediction on new data.
@@ -116,9 +126,9 @@ The algorithm implemented in this project is a semi-supervised algorithm. The ba
 %DONE    – Pseudocodes of your algorithm.
 \subsection{Details}
 The CNN~\cite{Mobahi2009} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. CNN are a good choice for visual recognition tasks because they can take the 2D topology of the data into account and because their structure limits the number of parameters to be learned. Additionally, the filter used during the convolutions phases create a system that resists well to translations of a target in a picture. 
-\begin{figure}[ht]
+\begin{figure}[htbp]
 \label{fig:convolutionnal-neural-net}
-\includegraphics[width=\textwidth]{CNN.png}
+\includegraphics[width=0.96\textwidth]{CNN.png}
 \caption{A convolutionnal neural network}
 \end{figure}
 
