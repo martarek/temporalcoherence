@@ -12,17 +12,15 @@ import dataset
 sys.argv.pop(0);  # Remove first argument
 
 # Check if every option(s) from parent's script are here.
-if 7 != len(sys.argv):
-    print "Usage: python run_nnet.py lr dc sizes L2 L1 seed batchsize "
+if 5 != len(sys.argv):
+    print "Usage: python run_nnet.py lr dc sizes seed batchsize "
     print ""
-    print "Ex.: python run_nnet.py 0.1 0 [20,10] 0 0 1234 6"
+    print "Ex.: python run_nnet.py 0.1 0 [10,10,10,10] 1234 6"
     sys.exit()
 
 # Set the constructor
-str_ParamOption = "lr=" + sys.argv[0] + ", " + "dc=" + sys.argv[1] + ", " + "sizes=" + sys.argv[2] + ", " + "L2=" + \
-                  sys.argv[3] + ", " + "L1=" + sys.argv[4] + ", " + "seed=" + sys.argv[5]
-str_ParamOptionValue = sys.argv[0] + "\t" + sys.argv[1] + "\t" + sys.argv[2] + "\t" + sys.argv[3] + "\t" + sys.argv[
-    4] + "\t" + sys.argv[5] + "\t" + sys.argv[6]
+str_ParamOption = "lr=" + sys.argv[0] + ", " + "dc=" + sys.argv[1] + ", " + "sizes=" + sys.argv[2] + ", " + "seed=" + sys.argv[3]
+str_ParamOptionValue = sys.argv[0] + "\t" + sys.argv[1] + "\t" + sys.argv[2] + "\t" + sys.argv[3] + "\t" + sys.argv[4]
 try:
     objectString = 'myObject = NeuralNetwork(n_epochs=1,' + str_ParamOption + ')'
     exec objectString
@@ -34,7 +32,7 @@ except Exception as inst:
 
 print "Loading dataset..."
 #trainset, validset, testset = dataset_store.get_classification_problem('ocr_letters')
-trainset, validset, testset = dataset.get_classification_problem('../images/', int(sys.argv[6]))
+trainset, validset, testset = dataset.get_classification_problem('../images/', int(sys.argv[4]))
 
 print "Training..."
 # Early stopping code
@@ -88,7 +86,7 @@ result_file = 'results_nnet_ocr_letters.txt'
 
 # Preparing result file
 header_line = ""
-header_line += 'lr\tdc\tsizes\tL2\tL1\tseed\tbatchsize\t'
+header_line += 'lr\tdc\tsizes\tseed\tbatchsize\t'
 header_line += str_header
 if not os.path.exists(result_file):
     f = open(result_file, 'w')

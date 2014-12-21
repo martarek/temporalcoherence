@@ -5,56 +5,17 @@ from theano.tensor.nnet import conv
 from theano.tensor.signal import downsample
 
 class NeuralNetwork(Learner):
-    """
-    Neural network for classification.
-
-    Option ``lr`` is the learning rate.
-
-    Option ``dc`` is the decrease constante for the learning rate.
-
-    Option ``sizes`` is the list of hidden layer sizes.
-
-    Option ``L2`` is the L2 regularization weight (weight decay).
-
-    Option ``L1`` is the L1 regularization weight (weight decay).
-
-    Option ``seed`` is the seed of the random number generator.
-
-    Option ``tanh`` is a boolean indicating whether to use the
-    hyperbolic tangent activation function (True) instead of the
-    sigmoid activation function (True).
-
-    Option ``parameter_initialization`` is a pair of lists,
-    giving the initializations for the biases (first list)
-    and the weight matrices (second list). If ``None``,
-    then a random initialization is used.
-
-    Option ``n_epochs`` number of training epochs.
-
-    **Required metadata:**
-
-    * ``'input_size'``: Size of the input.
-    * ``'targets'``: Set of possible targets.
-
-    """
-
     def __init__(self,
                  lr=0.001,
                  dc=0,
-                 sizes=[200,100,50],
-                 L2=0,
-                 L1=0,
+                 sizes=[10,10,10,10],
                  seed=1234,
-                 tanh=False,
                  parameter_initialization=None,
                  n_epochs=10):
         self.lr=lr
         self.dc=dc
         self.sizes=sizes
-        self.L2=L2
-        self.L1=L1
         self.seed=seed
-        self.tanh=tanh
         self.parameter_initialization = parameter_initialization
         self.n_epochs=n_epochs
 
@@ -84,7 +45,6 @@ class NeuralNetwork(Learner):
         self.inputTensor = T.tensor.matrix("input").reshape((batchsize,1,72,72))
         targets = T.tensor.ivector('target')
 
-
         filter_shapes = [(self.sizes[0], 1, 3, 3), (self.sizes[1], self.sizes[0], 4, 4),
                          (self.sizes[2], self.sizes[1], 5, 5), (self.sizes[3], self.sizes[2], 6, 6)]
 
@@ -96,15 +56,13 @@ class NeuralNetwork(Learner):
         S6 = self.createPoolingLayer(C5, (2, 2), filter_shapes[2])
         C7 = abs(self.createConvolutionLayer(S6, filter_shapes[3], (batchsize, self.sizes[2], 6, 6)))
 
-
         output_layer = self.createSigmoidLayer(C7.flatten(2), self.sizes[-1], 1)
         cost = self.training_loss(output_layer, targets)
-        nll = -T.tensor.log(output_layer)#-T.tensor.mean(T.tensor.log(output_layer))
+        nll = -T.tensor.log(output_layer)
         grads = T.tensor.grad(cost, self.params)
 
         n_updates = T.shared(0.)
 
-        #updates = [(param_i, param_i - self.lr * grad_i) for param_i, grad_i in zip(self.params, grads)]
         updates = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params, grads)]
         updates += [(n_updates, n_updates + 1.)]
 
@@ -146,12 +104,7 @@ class NeuralNetwork(Learner):
                                )
         print(filter_shape)
 
-        #b_values = np.zeros((filter_shape[0],), dtype=T.config.floatX)
-        #b = T.shared(b_values)
-        #conv_out = conv_out + b.dimshuffle('x', 0, 'x', 'x')
-
         self.params.append(W)
-        #self.params.append(b)
         return conv_out
 
     def createPoolingLayer(self, input, poolsize, prev_filter_shape):
@@ -169,19 +122,16 @@ class NeuralNetwork(Learner):
                 (nkerns*img_size, self.n_classes),
                 dtype=T.config.floatX
             ),
-            name='sigmoid W',
             borrow=True
         )
         b = T.shared(
             value = np.zeros((self.n_classes,), dtype=T.config.floatX),
-            name = 'sigmoid b',
             borrow=True
         )
         self.params.append(W)
         self.params.append(b)
         return T.tensor.nnet.softmax(T.tensor.dot(input, W) + b)
 
-    #TODO THEANO-IZE
     def train(self,trainset):
         """
         Trains the neural network until it reaches a total number of
@@ -219,7 +169,6 @@ class NeuralNetwork(Learner):
         return -T.tensor.mean(T.tensor.log(output)[T.tensor.arange(target.shape[0]), target])
 
 
-    #TODO THEANO-IZE
     def use(self,dataset):
         """
         Computes and returns the outputs of the Learner for
@@ -242,9 +191,6 @@ class NeuralNetwork(Learner):
                 outputs[t,0] = output
                 outputs[t,1:] = nll
                 t += 1
-        #    outputs[t,0] = self.pred_y(input)
-        #    outputs[t,1:] = self.cost_function(input)#self.theano_fprop(input)
-        #    t += 1
 
         return outputs
 
@@ -268,9 +214,7 @@ class NeuralNetwork(Learner):
             for target in targets:
                 output = outputs[t,:]
                 errors[t,0] = output[0] != target
-                errors[t,1] = output[int(target) + 1]#self.training_loss(output[1:],target)
+                errors[t,1] = output[int(target) + 1]
                 t+=1
 
         return outputs, errors
-
-
