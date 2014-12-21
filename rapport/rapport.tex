@@ -59,19 +59,19 @@ Olivier Gagnon \And Bernard Lebel
 \maketitle
 
 \begin{abstract}
-We reimplemented the algorithm presented in the article \emph{Deep Learning from Temporal Coherence in Video} using the MLPython and Theano python library. We then tested it on the COIL100 dataset. We then present the result of a comparison of the performance of this method compared to a regular convolutionnal neural network.
+The work shown in this article reimplements the algorithm presented in the article \emph{Deep Learning from Temporal Coherence in Video} using the MLPython and Theano python library. The implementation was then on the COIL100 dataset. Comparativite results between this method and a regular convolutional neural network are then presented.
 \end{abstract}
 
 \section{Introduction}
 
 % Describe the problem or application that your project is concerned with.
-Object recognition is a classification problem where a system attempts to identify an object in a picture using classification's algorithms. Litterature shows that a common approach to this type of problems is to rely on machine learning techniques. Those techniques however tend to require a labeled dataset (i.e. a database of items with an associated classification label) onto which the system has to be trained. As extensive datasets can be costly to acquire, unsupervised machine learning methods using non-labeled data can be used to alleviate this problem. This broadens the amount of possible inputs without requiring codification by a human.
+Object recognition is a classification problem where a system attempts to identify an object in a picture using classification's algorithms. Litterature shows that a common approach to this type of problems is to rely on machine learning techniques(e.g.~\cite{vision}~\cite{vision2}). Those techniques however tend to require a labeled dataset (i.e. a database of items with an associated classification label) onto which the system has to be trained. As extensive datasets can be costly to acquire, unsupervised machine learning methods using non-labeled data can be used to alleviate this problem. This broadens the amount of possible inputs without requiring codification by a human.
 
-One of the information that can prove useful is temporal coherence. Temporal coherence is a principle that states that in a video sequence, it is likely that two adjacent frames contains the same objects rather than radically different ones. Interestingly, this statement can also be considered true in other field of studies where data is of sequential nature (e.g. biological sensor inputs).
+One of the information that can prove useful for this type of task is temporal coherence. Temporal coherence is the principle that states that in a video sequence, it is likely that two adjacent frames contains the same objects rather than radically different ones. Interestingly, this statement can also be considered true in other field of studies where data is of sequential nature (e.g. biological sensor inputs).
 
 The method chosen to solve this problem is to use temporal coherence as a regularizer to exploit this information in unlabeled temporal data.\cite{Mobahi2009}
 %Mention the method you have chosen and why it solves your problem or is a good choice for your application.
-This method is a good choice for our problem, because it accounts for the likelihood that two consequent frames in a video contains the same object and that two distant frames are likely not. Leveraging this approach, it is stipulated that a neural network can be trained using standard labeled inputs, sequential non-labeled inputs and non-sequential non-labeled inputs altogether to achieve an accurate object categorization in context where inputs are non-sequential. 
+This method is a good choice for these type of problems because it accounts for the likelihood that two consequent frames in a video contains the same object and that two distant frames are likely not. Leveraging this approach, it is stipulated that a neural network can be trained using standard labeled inputs, sequential non-labeled inputs and non-sequential non-labeled inputs altogether to achieve an accurate object categorization in context where inputs are non-sequential. 
 
 \section{Description}
 \subsection{COIL100 dataset}
@@ -113,7 +113,7 @@ In the following sections, the input image $i$, is noted $\mathbf{x_i}$ and the 
 %    – Type of learning (supervised / unsupervised, discriminative / generative).
 %    – Intuition behind the training objective your algorithm optimizes.
 %    – Intuition behind the architecture of the neural network.
-The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutionnal neural network (CNN) trained as a classifier on the dataset COIL-100~\cite{lecun1998gradient}. A regularizer is then applied to ensure that the CNN does not act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
+The algorithm implemented in this project is a semi-supervised algorithm. The base algorithm used is a convolutional neural network (CNN) trained as a classifier on the dataset COIL-100~\cite{lecun1998gradient}. A regularizer is then applied to ensure that the CNN does not act in a radically different manner for two consecutives unlabelled video-frame. A second regularization is also applied to ensure that two non-consecutives frame do not act in the same way.
 
 %– Provide a detailed description of your algorithm which implements these principles. Your description should allow a person to reimplement your method from your description. Here are some things that you could discuss :
 %DONE    – Objective optimized during training. X
@@ -125,16 +125,16 @@ The algorithm implemented in this project is a semi-supervised algorithm. The ba
 %TODO    - Description of hyper-parameters.
 %DONE    – Pseudocodes of your algorithm.
 \subsection{Details}
-The CNN~\cite{Mobahi2009} architecture is presented in the figure~\ref{fig:convolutionnal-neural-net}. It consists in a chain of filters and resolution reduction steps. CNN are a good choice for visual recognition tasks because they can take the 2D topology of the data into account and because their structure limits the number of parameters to be learned. Additionally, the filter used during the convolutions phases create a system that resists well to translations of a target in a picture. 
+The CNN~\cite{Mobahi2009} architecture is presented in the figure~\ref{fig:convolutional-neural-net}. It consists in a chain of filters and resolution reduction steps. CNN are a good choice for visual recognition tasks because they can take the 2D topology of the data into account and because their structure limits the number of parameters to be learned. Additionally, the filter used during the convolutions phases create a system that resists well to translations of a target in a picture. 
 \begin{figure}[htbp]
-\label{fig:convolutionnal-neural-net}
+\label{fig:convolutional-neural-net}
 \includegraphics[width=0.96\textwidth]{CNN.png}
-\caption{A convolutionnal neural network}
+\caption{A convolutional neural network}
 \end{figure}
 
 \subsubsection{Convolution and subsampling}
 
-The convolution layer $C_l$ in the architecture presented in figure~\ref{fig:convolutionnal-neural-net} does a linear $K^l \times K^l$ filtering over the the image input planes $z^{l-1}_{1... N^{l-1}}$. A number of planes $z^l_{1...N^l}$ are output, where the value at position $(i, j)$ is given by:
+The convolution layer $C_l$ in the architecture presented in figure~\ref{fig:convolutional-neural-net} does a linear $K^l \times K^l$ filtering over the the image input planes $z^{l-1}_{1... N^{l-1}}$. A number of planes $z^l_{1...N^l}$ are output, where the value at position $(i, j)$ is given by:
 \begin{equation}
 z^l_p(i,j) = \abs{\sum_q \sum_{s=1}^{K^l} \sum_{t=1}^{K^l} w^l_{p,q,s,t}z_q^{l-1}(i-1+s, j-1+t)} + b_p^l
 \end{equation}
@@ -165,7 +165,7 @@ where $\lambda$ is a learning rate.
 
 The second and third lost functions are presented in~\cite{Mobahi2009}.
 
-Considering two images $\mathbf{x_1}$ and $\mathbf{x_2}$ and their respective representation in the $l^{th}$ layer $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$, we enforce $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$ to be close when the two images are consecutive frames in a video.
+Considering two images $\mathbf{x_1}$ and $\mathbf{x_2}$ and their respective representation in the $l^{th}$ layer $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$, $z_\theta^l(\mathbf{x_1})$ and $z_\theta^l(\mathbf{x_2})$ were enforced to be close when the two images are consecutive frames in a video.
 
 \begin{equation}
 L_{coh1}(\theta, \mathbf{x_1}, \mathbf{x_2}) = \norm{z_\theta^l(\mathbf{x_1}) - z_\theta^l(\mathbf{x_2})}_1
@@ -201,7 +201,7 @@ The algorithm used in this study is presented at~\ref{lst:algo} as presented in~
 
 \subsection{Prediction}
 
-The prediction is done in the conventional way. A forward propagation of the preprocessed input is done. The predicted class is given by the equation~\ref{eq:argmax}.
+The prediction is done through a forward propagation of the preprocessed input and the predicted class is given by the equation~\ref{eq:argmax}.
 
 \begin{equation}
 \label{eq:argmax}
@@ -214,7 +214,7 @@ where $\tilde{P_p}$ is given by the equation~\ref{eq:P_p}.
 
 \subsection{Implementation}
 
-The algorithms were implemented using the MLPython library\cite{mlpython} and the Theano library\cite{Bastien-Theano-2012}. MLPython was used to create the problem, manage the overall training, evaluation of the models. Theano was used to build the expression of the model and to obtain the gradients. The parameter updates of the stochastic gradient descent was also done with Theano.
+The algorithms were implemented using the MLPython library\cite{mlpython} and Theano\cite{Bastien-Theano-2012}. MLPython was used to create the problem, manage the overall training, evaluation of the models. Theano was used to build the expression of the model and to obtain the gradients. The parameter updates of the stochastic gradient descent was also done using Theano.
 
 \input{results}
 

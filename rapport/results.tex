@@ -3,8 +3,7 @@
 The COIL100 dataset contains 100 different object. From this dataset, 30 objects were selected randomly to be the labeled examples. The other 70 objects were used for the video dataset. The remaining 30 objects were separated into three datasets. For each object, 4 angles were used for the training (0, 90, 180, 270 degrees) and 4 angles were used for the validation (45, 135, 225, 315 degrees). The rest of the angles were used as test data.
 
 Since the article mentioned the pictures were 72X72 pixels, the images from the dataset were resized to this format prior to any experiment. The images were converted into grayscale format. The intra-image mean was substracted for each image. Each pixel was then divided by the intra-image standard deviation.
-%TODO – Describe your procedure for selecting hyper-parameters.
-%DONE – Present and analyze the results for different hyper-parameters on the validation and training sets.
+
 
 \subsection{Results for different hyper-parameters}
 
@@ -60,7 +59,7 @@ The results for different hyper-parameters are presented in the table~\ref{tab:r
 
 \subsection{Results details}
 %DONE – Present any results that validate the correctness of your implementation.
-The figure~\ref{fig:results_bestrun} presents the training and validation error for the best hyper-parameters. It is interesting to note the small decrease of the classification error at the begining of the optimization. This pattern was repeated with almost every selection of hyper-parameters. We countered this effect by increasing the value of the look-ahead.
+The figure~\ref{fig:results_bestrun} presents the training and validation error for the best hyper-parameters. It is of interest to note the small decrease of the classification error at the beginning of the optimization. This pattern was repeated with almost every selection of hyper-parameters. This effect was accounted for by increasing the value of the look-ahead.
 
 
 \begin{figure}[htbf]
@@ -73,7 +72,7 @@ The figure~\ref{fig:results_bestrun} presents the training and validation error 
 \subsection{Comparison}
 %TODO – Present the results of your algorithm on the test set and make a comparison with an alternative, simple baseline.
 
-To show the performance of the algorithm, we compared its performance against a convolutionnal-neural-network without the temporal coherence regularisation. The results for differents set of hyper-parameters are shown in table~\ref{tab:cnn}. We can see that the best value in validation in our method and the traditionnal method are roughly the same. However, the size of the neural network needed to achieve these performance are much smaller with temporal coherence. We can also see that there is more set of hyper-parameters that achieve interesting performance with this method than with the traditionnal method.
+In order to demonstrate performance of the algorithm, the temporal coherence CNN was compared against a CNN without the temporal coherence regularisation. The results for different sets of hyper-parameters are shown in table~\ref{tab:cnn}. As shown in this table, it is possible to see that the best value in validation using the temporal coherence CNN and the baseline CNN are similar. However, the size of the neural network needed to achieve these performances is much smaller with temporal coherence. Also, there are more sets of hyper-parameters that achieve interesting performance with this method than baseline CNN.
 
 \begin{table}[f]
 \begin{tabular}{@{}rrrrrrrrr@{}}
@@ -114,7 +113,7 @@ To show the performance of the algorithm, we compared its performance against a 
 0.09 & {[}4,16,64,600{]} & 4 & 0.750 & 0.800 & 0.780 & 3.380 & 3.384 & 3.383 \\
 0.09 & {[}8,32,128,1000{]} & 3 & 0.642 & 0.750 & 0.713 & 3.378 & 3.383 & 3.381 \\ \bottomrule
 \end{tabular}
-\caption{Results for the normal convolutionnal-neural network}
+\caption{Results for the normal convolutional-neural network}
 \label{tab:cnn}
 \end{table}
 
