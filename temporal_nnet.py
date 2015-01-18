@@ -103,7 +103,7 @@ class TemporalNeuralNetwork(Learner):
 
         grads_ThirdPhase = T.tensor.grad(cost_ThirdPhase, self.params[:-2])
 
-        n_updates = T.shared(0.)
+        n_updates = T.shared(np.cast[T.config.floatX](0)) 
 
         updates_FirstPhase = [self.update_param(param_i, grad_i, n_updates, self.lrFirstPhase) for param_i, grad_i in zip(self.params, grads_FirstPhase)]
         updates_FirstPhase += [(n_updates, n_updates + 1.)]
@@ -165,7 +165,6 @@ class TemporalNeuralNetwork(Learner):
                                filter_shape=filter_shape,
                                image_shape=image_shape
         )
-
 
         self.params.append(W)
         return conv_out

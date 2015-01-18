@@ -61,7 +61,7 @@ class NeuralNetwork(Learner):
         nll = -T.tensor.log(output_layer)
         grads = T.tensor.grad(cost, self.params)
 
-        n_updates = T.shared(0.)
+        n_updates = T.shared(np.cast[T.config.floatX](0))
 
         updates = [self.update_param(param_i, grad_i, n_updates) for param_i, grad_i in zip(self.params, grads)]
         updates += [(n_updates, n_updates + 1.)]
